@@ -7,9 +7,11 @@
   <maintainer email="yukihiro.saito@tier4.jp">Yukihiro Saito</maintainer>
   <license>Apache 2</license>
 
+  <buildtool_depend>ament_cmake_auto</buildtool_depend>
 
-  <buildtool_depend>catkin</buildtool_depend>
+  <depend>velodyne_description</depend>
 
   <export>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

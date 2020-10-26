@@ -1,13 +1,11 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.5)
 project(aip_xx1_description)
 
-find_package(catkin REQUIRED)
+find_package(ament_cmake_auto REQUIRED)
 
-catkin_package()
+ament_auto_find_build_dependencies()
 
-install(
-  DIRECTORY
-    config
+ament_auto_package(INSTALL_TO_SHARE
     urdf
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+    config
 )
