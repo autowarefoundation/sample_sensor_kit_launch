@@ -17,7 +17,7 @@
         </geometry>
         <origin rpy="0 0 0" xyz="0 0 0"/>
         <material name="red">
-          <color rgba="1.0 0.0 0.0 2.0"/>
+          <color rgba="1.0 0.0 0.0 1.0"/>
         </material>
       </visual>
       <inertial>
