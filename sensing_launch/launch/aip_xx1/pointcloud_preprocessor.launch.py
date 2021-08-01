@@ -117,16 +117,17 @@ def launch_setup(context, *args, **kwargs):
 
     ground_component = ComposableNode(
         package=pkg,
-        plugin='pointcloud_preprocessor::RayGroundFilterComponent',
-        name='ray_ground_filter',
+        plugin='pointcloud_preprocessor::ScanGroundFilterComponent',
+        name='scan_ground_filter',
         remappings=[
             ('input', 'measurement_range_cropped/pointcloud'),
             ('output', 'no_ground/pointcloud')
         ],
         parameters=[{
-            'general_max_slope': 10.0,
-            'local_max_slope': 10.0,
-            'min_height_threshold': 0.2,
+            'global_slope_max': 10.0,
+            'local_slope_max_angle': 30.0,
+            'split_points_distance_tolerance': 0.2,
+            'split_height_distance': 0.2,
         }],
         extra_arguments=[{
             'use_intra_process_comms': LaunchConfiguration('use_intra_process')
