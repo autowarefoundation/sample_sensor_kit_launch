@@ -127,8 +127,8 @@ def launch_setup(context, *args, **kwargs):
             ('output', 'no_ground/oneshot/pointcloud')
         ],
         parameters=[{
-            'global_slope_max': 10.0,
-            'local_slope_max_angle': 30.0,
+            'global_slope_max_angle_deg': 10.0,
+            'local_slope_max_angle_deg': 30.0,
             'split_points_distance_tolerance': 0.2,
             'split_height_distance': 0.2,
         }],
