@@ -10,7 +10,7 @@
 
     <group>
       <push-ros-namespace namespace="top"/>
-      <include file="$(find-pkg-share sensing_launch)/launch/velodyne_VLS128.launch.xml">
+      <include file="$(find-pkg-share common_sensor_launch)/launch/velodyne_VLS128.launch.xml">
         <arg name="sensor_frame" value="velodyne_top" />
         <arg name="device_ip" value="192.168.1.201"/>
         <arg name="port" value="2368"/>
@@ -22,7 +22,7 @@
 
     <group>
       <push-ros-namespace namespace="left"/>
-      <include file="$(find-pkg-share sensing_launch)/launch/velodyne_VLP16.launch.xml">
+      <include file="$(find-pkg-share common_sensor_launch)/launch/velodyne_VLP16.launch.xml">
         <arg name="sensor_frame" value="velodyne_left" />
         <arg name="device_ip" value="192.168.1.202"/>
         <arg name="port" value="2369"/>
@@ -34,7 +34,7 @@
 
     <group>
       <push-ros-namespace namespace="right"/>
-      <include file="$(find-pkg-share sensing_launch)/launch/velodyne_VLP16.launch.xml">
+      <include file="$(find-pkg-share common_sensor_launch)/launch/velodyne_VLP16.launch.xml">
         <arg name="sensor_frame" value="velodyne_right" />
         <arg name="device_ip" value="192.168.1.203"/>
         <arg name="port" value="2370"/>
@@ -44,7 +44,7 @@
       </include>
     </group>
 
-    <include file="$(find-pkg-share sensing_launch)/launch/aip_x2/pointcloud_preprocessor.launch.py">
+    <include file="$(find-pkg-share aip_s1)/launch/pointcloud_preprocessor.launch.py">
       <arg name="base_frame" value="base_link" />
       <arg name="use_concat_filter" value="$(var use_concat_filter)" />
       <arg name="vehicle_param_file" value="$(var vehicle_param_file)" />

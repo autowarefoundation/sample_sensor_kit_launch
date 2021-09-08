@@ -2,6 +2,8 @@
 
   <arg name="launch_driver" default="true" />
 
+  <let name="current_dir" value="$(dirname)"/>
+
   <group>
     <push-ros-namespace namespace="camera"/>
     <group>
@@ -12,7 +14,7 @@
         <param name="camera_frame_id" value="traffic_light/camera_optical_link" />
         <param name="camera_name" value="traffic_light/camera" />
         <param name="video_device" value="/dev/video4" />
-        <param name="camera_info_url" value="$(find-pkg-share sensing_launch)/data/traffic_light_camera.yaml" />
+        <param name="camera_info_url" value="$(var current_dir)/../data/traffic_light_camera.yaml" />
         <param name="image_width" value="2880" />
         <param name="image_height" value="1860" />
         <param name="pixel_format" value="yuyv" />
