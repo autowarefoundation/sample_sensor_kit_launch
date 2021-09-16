@@ -8,7 +8,6 @@
   <let name="current_dir" value="$(dirname)"/>
 
   <group>
-    <push-ros-namespace namespace="sensing"/>
 
     <!-- LiDAR Driver -->
     <include file="$(var current_dir)/lidar.launch.xml">
