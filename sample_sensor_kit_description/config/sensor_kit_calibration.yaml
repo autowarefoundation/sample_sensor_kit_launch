@@ -41,14 +41,14 @@ sensor_kit_base_link:
     roll: 0.0
     pitch: -0.01
     yaw: 3.125
-  traffic_light_right_camera_link:
+  traffic_light_right_camera/camera_link:
     x: 0.05
     y: -0.0175
     z: -0.1
     roll: 0.0
     pitch: 0.0
     yaw: 0.0
-  traffic_light_left_camera_link:
+  traffic_light_left_camera/camera_link:
     x: 0.05
     y: 0.0175
     z: -0.1
