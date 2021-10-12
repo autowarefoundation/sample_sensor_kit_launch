@@ -17,7 +17,7 @@
   <arg name="vehicle_param_file" />
   <arg name="vehicle_mirror_param_file" />
 
-  <include file="$(find-pkg-share sensing_launch)/launch/velodyne_node_container.launch.py">
+  <include file="$(find-pkg-share common_sensor_launch)/launch/velodyne_node_container.launch.py">
     <arg name="launch_driver" value="$(var launch_driver)"/>
     <arg name="model" value="$(var model)"/>
     <arg name="calibration" value="$(var calibration)"/>
