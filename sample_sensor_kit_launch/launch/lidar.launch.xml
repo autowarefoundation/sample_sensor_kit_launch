@@ -91,7 +91,7 @@
       </include>
     </group> -->
 
-    <include file="$(find-pkg-share aip_xx1)/launch/pointcloud_preprocessor.launch.py">
+    <include file="$(find-pkg-share aip_xx1_launch)/launch/pointcloud_preprocessor.launch.py">
       <arg name="base_frame" value="base_link" />
       <arg name="use_concat_filter" value="$(var use_concat_filter)" />
       <arg name="vehicle_param_file" value="$(var vehicle_param_file)" />
