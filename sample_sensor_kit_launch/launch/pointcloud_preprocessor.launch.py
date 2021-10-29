@@ -16,14 +16,17 @@
 
 import launch
 from launch.actions import DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription
 from launch.actions import OpaqueFunction
 from launch.actions import SetLaunchConfiguration
 from launch.conditions import IfCondition
 from launch.conditions import UnlessCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer
 from launch_ros.actions import LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
+from launch_ros.substitutions import FindPackageShare
 import yaml
 
 
@@ -117,17 +120,49 @@ def launch_setup(context, *args, **kwargs):
 
     ground_component = ComposableNode(
         package=pkg,
-        plugin='pointcloud_preprocessor::RayGroundFilterComponent',
-        name='ray_ground_filter',
+        plugin='pointcloud_preprocessor::ScanGroundFilterComponent',
+        name='scan_ground_filter',
         remappings=[
             ('input', 'measurement_range_cropped/pointcloud'),
-            ('output', 'no_ground/pointcloud')
+            ('output', 'no_ground/oneshot/pointcloud')
         ],
         parameters=[{
-            'general_max_slope': 10.0,
-            'local_max_slope': 10.0,
-            'min_height_threshold': 0.2,
+            'global_slope_max_angle_deg': 10.0,
+            'local_slope_max_angle_deg': 30.0,
+            'split_points_distance_tolerance': 0.2,
+            'split_height_distance': 0.2,
         }],
+        extra_arguments=[{
+            'use_intra_process_comms': LaunchConfiguration('use_intra_process')
+        }],
+    )
+
+    load_laserscan_to_occupancy_grid_map = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                FindPackageShare('laserscan_to_occupancy_grid_map'),
+                '/launch/laserscan_to_occupancy_grid_map.launch.py'
+            ]
+        ),
+        launch_arguments={
+            'container':
+            '/sensing/lidar/pointcloud_preprocessor/pointcloud_preprocessor_container',
+            'input/obstacle_pointcloud': 'no_ground/oneshot/pointcloud',
+            'input/raw_pointcloud': 'concatenated/pointcloud',
+            'output': 'occupancy_grid',
+            'use_intra_process': LaunchConfiguration('use_intra_process'),
+        }.items()
+    )
+
+    occupancy_grid_map_outlier_component = ComposableNode(
+        package=pkg,
+        plugin='pointcloud_preprocessor::OccupancyGridMapOutlierFilterComponent',
+        name='occupancy_grid_map_outlier_filter',
+        remappings=[
+            ('~/input/occupancy_grid_map', 'occupancy_grid'),
+            ('~/input/pointcloud', 'no_ground/oneshot/pointcloud'),
+            ('~/output/pointcloud', 'no_ground/pointcloud'),
+        ],
         extra_arguments=[{
             'use_intra_process_comms': LaunchConfiguration('use_intra_process')
         }],
@@ -142,6 +177,7 @@ def launch_setup(context, *args, **kwargs):
         composable_node_descriptions=[
             cropbox_component,
             ground_component,
+            occupancy_grid_map_outlier_component,
         ],
         output='screen',
     )
@@ -159,7 +195,7 @@ def launch_setup(context, *args, **kwargs):
         condition=UnlessCondition(LaunchConfiguration('use_concat_filter')),
     )
 
-    return [container, concat_loader, passthrough_loader]
+    return [container, concat_loader, passthrough_loader, load_laserscan_to_occupancy_grid_map]
 
 
 def generate_launch_description():
