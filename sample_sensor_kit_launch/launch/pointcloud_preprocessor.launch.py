@@ -23,40 +23,13 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer
 from launch_ros.actions import LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
-import yaml
-
-
-def get_vehicle_info(context):
-    path = LaunchConfiguration("vehicle_param_file").perform(context)
-    with open(path, "r") as f:
-        p = yaml.safe_load(f)["/**"]["ros__parameters"]
-    p["vehicle_length"] = p["front_overhang"] + p["wheel_base"] + p["rear_overhang"]
-    p["vehicle_width"] = p["wheel_tread"] + p["left_overhang"] + p["right_overhang"]
-    p["min_longitudinal_offset"] = -p["rear_overhang"]
-    p["max_longitudinal_offset"] = p["front_overhang"] + p["wheel_base"]
-    p["min_lateral_offset"] = -(p["wheel_tread"] / 2.0 + p["right_overhang"])
-    p["max_lateral_offset"] = p["wheel_tread"] / 2.0 + p["left_overhang"]
-    p["min_height_offset"] = 0.0
-    p["max_height_offset"] = p["vehicle_height"]
-    return p
-
-
-def get_vehicle_mirror_info(context):
-    path = LaunchConfiguration("vehicle_mirror_param_file").perform(context)
-    with open(path, "r") as f:
-        p = yaml.safe_load(f)
-    return p
 
 
 def launch_setup(context, *args, **kwargs):
 
-    pkg = "pointcloud_preprocessor"
-
-    vehicle_info = get_vehicle_info(context)
-
     # set concat filter as a component
     concat_component = ComposableNode(
-        package=pkg,
+        package="pointcloud_preprocessor",
         plugin="pointcloud_preprocessor::PointCloudConcatenateDataSynchronizerComponent",
         name="concatenate_data",
         remappings=[("output", "concatenated/pointcloud")],
@@ -68,24 +41,6 @@ def launch_setup(context, *args, **kwargs):
                     "/sensing/lidar/right/outlier_filtered/pointcloud",
                 ],
                 "output_frame": LaunchConfiguration("base_frame"),
-            }
-        ],
-        extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
-    )
-
-    passthrough_component = ComposableNode(
-        package=pkg,
-        plugin="pointcloud_preprocessor::PassThroughFilterComponent",
-        name="passthrough_filter",
-        remappings=[
-            ("input", "top/outlier_filtered/pointcloud"),
-            ("output", "concatenated/pointcloud"),
-        ],
-        parameters=[
-            {
-                "output_frame": LaunchConfiguration("base_frame"),
-                "min_z": vehicle_info["min_height_offset"],
-                "max_z": vehicle_info["max_height_offset"],
             }
         ],
         extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
@@ -115,13 +70,7 @@ def launch_setup(context, *args, **kwargs):
         condition=IfCondition(LaunchConfiguration("use_concat_filter")),
     )
 
-    passthrough_loader = LoadComposableNodes(
-        composable_node_descriptions=[passthrough_component],
-        target_container=target_container,
-        condition=UnlessCondition(LaunchConfiguration("use_concat_filter")),
-    )
-
-    return [container, concat_loader, passthrough_loader]
+    return [container, concat_loader]
 
 
 def generate_launch_description():
@@ -132,8 +81,6 @@ def generate_launch_description():
         launch_arguments.append(DeclareLaunchArgument(name, default_value=default_value))
 
     add_launch_arg("base_frame", "base_link")
-    add_launch_arg("use_concat_filter", "use_concat_filter")
-    add_launch_arg("vehicle_param_file")
     add_launch_arg("use_multithread", "False")
     add_launch_arg("use_intra_process", "False")
     add_launch_arg("use_pointcloud_container", "False")
