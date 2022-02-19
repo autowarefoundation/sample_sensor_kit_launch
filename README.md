@@ -4,15 +4,39 @@
 
 ```bash
 .
-├── aip_x1_launch # AI.Pilot X1 package
+├── aip_x1_description # AI.Pilot X1 description package
+│   └── ... # some directories and files
+├── aip_x2_description
+│   └── ...
+├── aip_xx1_description
+│   └── ...
+├── ... # other AI.Pilot description packages...
+├── aip_x1_launch # AI.Pilot X1 launch package
 │   └── ... # some directories and files
 ├── aip_x2_launch
 │   └── ...
 ├── aip_xx1_launch
 │   └── ...
-├── ... # other AI.Pilot packages...
+├── ... # other AI.Pilot launch packages...
 └── common_sensor_launch # common sensor driver package
     └── ... # some directories and files
+```
+
+## Settings for `aip_*_description`
+
+- Add each transformation between a base frame and a sensor into calibration yaml as below.
+
+```yaml
+# sample_sensor_calibration.yaml
+# parent -> child
+parent_name
+  child_name
+    x:
+    y:
+    z:
+    roll:
+    pitch:
+    yaw:
 ```
 
 ## Description for `aip_*_launch`
