@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(aip_xx1_description)
+project(sample_sensor_kit_description)
 
 find_package(ament_cmake_auto REQUIRED)
 
