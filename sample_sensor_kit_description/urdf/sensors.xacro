@@ -15,6 +15,7 @@
     pitch="${calibration['base_link']['sensor_kit_base_link']['pitch']}"
     yaw="${calibration['base_link']['sensor_kit_base_link']['yaw']}"
   />
+
   <!-- embedded sensors -->
   <xacro:include filename="$(find velodyne_description)/urdf/VLP-16.urdf.xacro"/>
   <xacro:VLP-16
@@ -34,26 +35,4 @@
            ${calibration['base_link']['velodyne_rear_base_link']['yaw']}"
     />
   </xacro:VLP-16>
-  <xacro:include filename="$(find livox_description)/urdf/livox_horizon.xacro"/>
-  <xacro:livox_horizon_macro
-    name="livox_front_left"
-    parent="base_link"
-    x="${calibration['base_link']['livox_front_left_base_link']['x']}"
-    y="${calibration['base_link']['livox_front_left_base_link']['y']}"
-    z="${calibration['base_link']['livox_front_left_base_link']['z']}"
-    roll="${calibration['base_link']['livox_front_left_base_link']['roll']}"
-    pitch="${calibration['base_link']['livox_front_left_base_link']['pitch']}"
-    yaw="${calibration['base_link']['livox_front_left_base_link']['yaw']}"
-  />
-  <xacro:livox_horizon_macro
-    name="livox_front_right"
-    parent="base_link"
-    x="${calibration['base_link']['livox_front_right_base_link']['x']}"
-    y="${calibration['base_link']['livox_front_right_base_link']['y']}"
-    z="${calibration['base_link']['livox_front_right_base_link']['z']}"
-    roll="${calibration['base_link']['livox_front_right_base_link']['roll']}"
-    pitch="${calibration['base_link']['livox_front_right_base_link']['pitch']}"
-    yaw="${calibration['base_link']['livox_front_right_base_link']['yaw']}"
-  />
-
 </robot>
