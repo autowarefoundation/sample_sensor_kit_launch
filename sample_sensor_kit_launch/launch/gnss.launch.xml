@@ -1,5 +1,4 @@
 <launch>
-
   <arg name="launch_driver" default="true"/>
   <arg name="gnss_receiver" default="ublox" description="ublox(default) or septentrio"/>
   <arg name="coordinate_system" default="1" description="0:UTM, 1:MGRS, 2:PLANE"/>
@@ -40,6 +39,5 @@
 
       <arg name="gnss_frame" value="gnss_link"/>
     </include>
-
   </group>
 </launch>

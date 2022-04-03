@@ -1,5 +1,4 @@
 <launch>
-
   <arg name="launch_driver" default="true"/>
   <arg name="camera_type" default="left"/>
 
