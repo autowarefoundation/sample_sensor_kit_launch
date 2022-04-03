@@ -1,5 +1,4 @@
 <launch>
-
   <arg name="launch_driver" default="true"/>
 
   <group>
@@ -20,5 +19,4 @@
       <arg name="param_file" value="$(find-pkg-share individual_params)/config/$(env VEHICLE_ID default)/sample_sensor_kit/imu_corrector.param.yaml"/>
     </include>
   </group>
-
 </launch>

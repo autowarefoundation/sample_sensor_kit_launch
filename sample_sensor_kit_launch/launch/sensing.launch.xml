@@ -1,5 +1,4 @@
 <launch>
-
   <arg name="launch_driver" default="true" description="do launch driver"/>
   <arg name="vehicle_param_file" description="path to the file of vehicle info yaml"/>
   <arg name="vehicle_mirror_param_file" description="path to the file of vehicle mirror position yaml"/>
@@ -7,7 +6,6 @@
   <arg name="pointcloud_container_name" default="pointcloud_container"/>
 
   <group>
-
     <!-- LiDAR Driver -->
     <include file="$(find-pkg-share sample_sensor_kit_launch)/launch/lidar.launch.xml">
       <arg name="launch_driver" value="$(var launch_driver)"/>
@@ -31,7 +29,5 @@
     <include file="$(find-pkg-share sample_sensor_kit_launch)/launch/gnss.launch.xml">
       <arg name="launch_driver" value="$(var launch_driver)"/>
     </include>
-
   </group>
-
 </launch>
