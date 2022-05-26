@@ -26,17 +26,20 @@ import yaml
 
 
 def get_vehicle_info(context):
-    path = LaunchConfiguration("vehicle_param_file").perform(context)
-    with open(path, "r") as f:
-        p = yaml.safe_load(f)["/**"]["ros__parameters"]
-    p["vehicle_length"] = p["front_overhang"] + p["wheel_base"] + p["rear_overhang"]
-    p["vehicle_width"] = p["wheel_tread"] + p["left_overhang"] + p["right_overhang"]
-    p["min_longitudinal_offset"] = -p["rear_overhang"]
-    p["max_longitudinal_offset"] = p["front_overhang"] + p["wheel_base"]
-    p["min_lateral_offset"] = -(p["wheel_tread"] / 2.0 + p["right_overhang"])
-    p["max_lateral_offset"] = p["wheel_tread"] / 2.0 + p["left_overhang"]
+    # TODO(TIER IV): Use Parameter Substitution after we drop Galactic support
+    # https://github.com/ros2/launch_ros/blob/master/launch_ros/launch_ros/substitutions/parameter.py
+    gp = context.launch_configurations.get("ros_params", {})
+    if not gp:
+        gp = dict(context.launch_configurations.get("global_params", {}))
+    p = {}
+    p["vehicle_length"] = gp["front_overhang"] + gp["wheel_base"] + gp["rear_overhang"]
+    p["vehicle_width"] = gp["wheel_tread"] + gp["left_overhang"] + gp["right_overhang"]
+    p["min_longitudinal_offset"] = -gp["rear_overhang"]
+    p["max_longitudinal_offset"] = gp["front_overhang"] + gp["wheel_base"]
+    p["min_lateral_offset"] = -(gp["wheel_tread"] / 2.0 + gp["right_overhang"])
+    p["max_lateral_offset"] = gp["wheel_tread"] / 2.0 + gp["left_overhang"]
     p["min_height_offset"] = 0.0
-    p["max_height_offset"] = p["vehicle_height"]
+    p["max_height_offset"] = gp["vehicle_height"]
     return p
 
 
@@ -239,7 +242,6 @@ def generate_launch_description():
     add_launch_arg("view_width", description="lidar angle: 0~6.28 [rad]")
     add_launch_arg("input_frame", LaunchConfiguration("base_frame"), "use for cropbox")
     add_launch_arg("output_frame", LaunchConfiguration("base_frame"), "use for cropbox")
-    add_launch_arg("vehicle_param_file", description="path to the file of vehicle info yaml")
     add_launch_arg(
         "vehicle_mirror_param_file", description="path to the file of vehicle mirror position yaml"
     )
