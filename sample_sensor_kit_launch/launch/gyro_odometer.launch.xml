@@ -1,0 +1,23 @@
+<launch>
+  <arg name="use_imu" default="true"/>
+
+  <arg name="output_twist_vehicle_velocity_converter" default="/sensing/vehicle/twist_with_covariance" if="$(var use_imu)"/>
+  <arg name="output_twist_vehicle_velocity_converter" default="/sensing/internal_sensors/twist_with_covariance" unless="$(var use_imu)"/>
+
+  <group>
+    <push-ros-namespace namespace="vehicle"/>
+    <include file="$(find-pkg-share vehicle_velocity_converter)/launch/vehicle_velocity_converter.launch.xml">
+      <arg name="input_vehicle_velocity_topic" value="/vehicle/status/velocity_status"/>
+      <arg name="output_twist_with_covariance" value="$(var output_twist_vehicle_velocity_converter)"/>
+    </include>
+  </group>
+
+  <group>
+    <push-ros-namespace namespace="internal_sensors"/>
+    <include file="$(find-pkg-share gyro_odometer)/launch/gyro_odometer.launch.xml" if="$(var use_imu)">
+      <arg name="input_vehicle_twist_with_covariance_topic" value="/sensing/vehicle/twist_with_covariance"/>
+      <arg name="output_twist_with_covariance_topic" value="twist_with_covariance"/>
+      <arg name="use_imu" value="$(var use_imu)"/>
+    </include>
+  </group>
+</launch>

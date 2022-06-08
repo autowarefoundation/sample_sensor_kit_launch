@@ -3,6 +3,7 @@
   <arg name="vehicle_mirror_param_file" description="path to the file of vehicle mirror position yaml"/>
   <arg name="use_pointcloud_container" default="false" description="launch pointcloud container"/>
   <arg name="pointcloud_container_name" default="pointcloud_container"/>
+  <arg name="use_imu" default="false" description="use IMU"/>
 
   <group>
     <!-- LiDAR Driver -->
@@ -26,6 +27,11 @@
     <!-- GNSS Driver -->
     <include file="$(find-pkg-share sample_sensor_kit_launch)/launch/gnss.launch.xml">
       <arg name="launch_driver" value="$(var launch_driver)"/>
+    </include>
+
+    <!-- Odometry and IMU fusion -->
+    <include file="$(find-pkg-share sample_sensor_kit_launch)/launch/gyro_odometer.launch.xml">
+      <arg name="use_imu" value="$(var use_imu)"/>
     </include>
   </group>
 </launch>
