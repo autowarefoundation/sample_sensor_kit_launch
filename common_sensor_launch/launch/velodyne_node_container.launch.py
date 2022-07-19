@@ -138,13 +138,13 @@ def launch_setup(context, *args, **kwargs):
 
     nodes.append(
         ComposableNode(
-            package="velodyne_pointcloud",
-            plugin="velodyne_pointcloud::Interpolate",
-            name="velodyne_interpolate_node",
+            package="pointcloud_preprocessor",
+            plugin="pointcloud_preprocessor::DistortionCorrectorComponent",
+            name="distortion_corrector_node",
             remappings=[
-                ("velodyne_points_ex", "mirror_cropped/pointcloud_ex"),
-                ("velodyne_points_interpolate", "rectified/pointcloud"),
-                ("velodyne_points_interpolate_ex", "rectified/pointcloud_ex"),
+                ("~/input/velocity_report", "/vehicle/status/velocity_status"),
+                ("~/input/pointcloud", "mirror_cropped/pointcloud_ex"),
+                ("~/output/pointcloud", "rectified/pointcloud_ex"),
             ],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
