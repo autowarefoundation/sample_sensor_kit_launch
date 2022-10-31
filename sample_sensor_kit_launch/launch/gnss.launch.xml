@@ -34,7 +34,7 @@
       <arg name="output_topic_gnss_fixed" value="fixed"/>
 
       <arg name="coordinate_system" value="$(var coordinate_system)"/>
-      <arg name="use_ublox_receiver" value="true"/>
+      <arg name="use_gnss_ins_orientation" value="true"/>
 
       <arg name="gnss_frame" value="gnss_link"/>
     </include>
