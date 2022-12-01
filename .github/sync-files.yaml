@@ -30,3 +30,7 @@
   files:
     - source: .github/workflows/build-and-test.yaml
     - source: .github/workflows/build-and-test-differential.yaml
+
+- repository: autowarefoundation/autoware_launch
+  files:
+    - source: .pre-commit-config.yaml
