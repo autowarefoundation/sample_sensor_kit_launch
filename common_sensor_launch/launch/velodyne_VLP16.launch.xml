@@ -14,7 +14,7 @@
   <arg name="view_direction" default="0.0"/>
   <arg name="view_width" default="6.28"/>
   <arg name="vehicle_mirror_param_file"/>
-  <arg name="use_pointcloud_container" default="False"/>
+  <arg name="use_pointcloud_container" default="false"/>
   <arg name="container_name" default="velodyne_node_container"/>
 
   <include file="$(find-pkg-share common_sensor_launch)/launch/velodyne_node_container.launch.py">

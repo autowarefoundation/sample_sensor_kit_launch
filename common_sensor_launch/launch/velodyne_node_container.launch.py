@@ -258,7 +258,7 @@ def generate_launch_description():
     )
     add_launch_arg("use_multithread", "False", "use multithread")
     add_launch_arg("use_intra_process", "False", "use ROS2 component container communication")
-    add_launch_arg("use_pointcloud_container", "False")
+    add_launch_arg("use_pointcloud_container", "false")
     add_launch_arg("container_name", "velodyne_node_container")
 
     set_container_executable = SetLaunchConfiguration(
