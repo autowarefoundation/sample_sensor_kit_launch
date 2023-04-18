@@ -32,6 +32,7 @@
         <arg name="device_ip" value="192.168.1.202"/>
         <arg name="port" value="2369"/>
         <arg name="scan_phase" value="180.0"/>
+        <arg name="max_range" value="15.0" />
         <!-- TODO(fred-apex-ai) sensor_timestamp not supported anymore in ros2 driver but default values changed here -->
         <!-- <arg name="sensor_timestamp" value="false" /> -->
         <arg name="launch_driver" value="$(var launch_driver)"/>
@@ -48,6 +49,7 @@
         <arg name="device_ip" value="192.168.1.203"/>
         <arg name="port" value="2370"/>
         <arg name="scan_phase" value="180.0"/>
+        <arg name="max_range" value="15.0" />
         <!-- TODO(fred-apex-ai) sensor_timestamp not supported anymore in ros2 driver but default values changed here -->
         <!-- <arg name="sensor_timestamp" value="false" /> -->
         <arg name="launch_driver" value="$(var launch_driver)"/>
