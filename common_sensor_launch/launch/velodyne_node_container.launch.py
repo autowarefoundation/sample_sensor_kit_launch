@@ -63,7 +63,7 @@ def launch_setup(context, *args, **kwargs):
     # https://github.com/ros-drivers/velodyne/blob/ros2/velodyne_pointcloud/launch/velodyne_convert_node-VLP16-composed-launch.py
     nodes.append(
         ComposableNode(
-            package="velodyne_pointcloud",
+            package="awf_velodyne_pointcloud",
             plugin="velodyne_pointcloud::Convert",
             name="velodyne_convert_node",
             parameters=[
@@ -181,7 +181,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     driver_component = ComposableNode(
-        package="velodyne_driver",
+        package="awf_velodyne_driver",
         plugin="velodyne_driver::VelodyneDriver",
         # node is created in a global context, need to avoid name clash
         name="velodyne_driver",
