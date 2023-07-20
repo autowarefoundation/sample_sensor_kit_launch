@@ -1,7 +1,18 @@
 <launch>
   <arg name="launch_driver" default="true"/>
   <arg name="gnss_receiver" default="ublox" description="ublox(default) or septentrio"/>
+
+  <!-- GNSS poser common params -->
   <arg name="coordinate_system" default="1" description="0:UTM, 1:MGRS, 2:PLANE"/>
+  <arg name="buff_epoch" default="1"/>
+  <arg name="use_gnss_ins_orientation" default="true"/>
+  <arg name="plane_zone" default="9"/>
+  <arg name="height_system" default="1" description="0:Orthometric Height 1:Ellipsoid Height"/>
+  <!-- GNSS poser frames -->
+  <arg name="base_frame" default="base_link"/>
+  <arg name="gnss_base_frame" default="gnss_base_link"/>
+  <arg name="gnss_frame" default="gnss_link"/>
+  <arg name="map_frame" default="map"/>
 
   <group>
     <push-ros-namespace namespace="gnss"/>
@@ -34,9 +45,15 @@
       <arg name="output_topic_gnss_fixed" value="fixed"/>
 
       <arg name="coordinate_system" value="$(var coordinate_system)"/>
-      <arg name="use_gnss_ins_orientation" value="true"/>
+      <arg name="buff_epoch" value="$(var buff_epoch)"/>
+      <arg name="use_gnss_ins_orientation" value="$(var use_gnss_ins_orientation)"/>
+      <arg name="plane_zone" value="$(var plane_zone)"/>
+      <arg name="height_system" value="$(var height_system)"/>
 
-      <arg name="gnss_frame" value="gnss_link"/>
+      <arg name="base_frame" value="$(var base_frame)"/>
+      <arg name="gnss_base_frame" value="$(var gnss_base_frame)"/>
+      <arg name="gnss_frame" value="$(var gnss_frame)"/>
+      <arg name="map_frame" value="$(var map_frame)"/>
     </include>
   </group>
 </launch>
