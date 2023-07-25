@@ -26,11 +26,11 @@ from launch_ros.descriptions import ComposableNode
 
 
 def launch_setup(context, *args, **kwargs):
-    # set concat filter as a component
+    # set concatenate filter as a component
     separate_concatenate_node_and_timesync_node_str = DeclareLaunchArgument(
         "separate_concatenate_node_and_timesync_node",
         default_value="false",
-        description="Set True to separate concatenate node and timesync node. which will cause to larger memory usage.",
+        description="Set True to separate concatenate node and time synchronization node. which will cause to larger memory usage.",
     )
     separate_concatenate_node_and_timesync_node = (
         separate_concatenate_node_and_timesync_node_str.lower() == "true"
