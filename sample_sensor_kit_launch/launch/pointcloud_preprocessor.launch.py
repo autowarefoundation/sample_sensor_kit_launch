@@ -27,14 +27,9 @@ from launch_ros.descriptions import ComposableNode
 
 def launch_setup(context, *args, **kwargs):
     # set concatenate filter as a component
-    separate_concatenate_node_and_timesync_node_str = DeclareLaunchArgument(
-        "separate_concatenate_node_and_timesync_node",
-        default_value="false",
-        description="Set True to separate concatenate node and time synchronization node. which will cause to larger memory usage.",
-    )
-    separate_concatenate_node_and_timesync_node = (
-        separate_concatenate_node_and_timesync_node_str.lower() == "true"
-    )
+
+    separate_concatenate_node_and_timesync_node_str = LaunchConfiguration("separate_concatenate_node_and_timesync_node").perform(context)
+    separate_concatenate_node_and_timesync_node = separate_concatenate_node_and_timesync_node_str.lower() == "true"
 
     # switch between sync_and_concatenate_filter and synchronizer_filter
     if not separate_concatenate_node_and_timesync_node:
@@ -141,6 +136,7 @@ def generate_launch_description():
     add_launch_arg("use_intra_process", "False")
     add_launch_arg("use_pointcloud_container", "False")
     add_launch_arg("container_name", "pointcloud_preprocessor_container")
+    add_launch_arg("separate_concatenate_node_and_timesync_node", "False")
 
     set_container_executable = SetLaunchConfiguration(
         "container_executable",
