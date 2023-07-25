@@ -28,8 +28,12 @@ from launch_ros.descriptions import ComposableNode
 def launch_setup(context, *args, **kwargs):
     # set concatenate filter as a component
 
-    separate_concatenate_node_and_timesync_node_str = LaunchConfiguration("separate_concatenate_node_and_timesync_node").perform(context)
-    separate_concatenate_node_and_timesync_node = separate_concatenate_node_and_timesync_node_str.lower() == "true"
+    separate_concatenate_node_and_timesync_node_str = LaunchConfiguration(
+        "separate_concatenate_node_and_timesync_node"
+    ).perform(context)
+    separate_concatenate_node_and_timesync_node = (
+        separate_concatenate_node_and_timesync_node_str.lower() == "true"
+    )
 
     # switch between sync_and_concatenate_filter and synchronizer_filter
     if not separate_concatenate_node_and_timesync_node:
