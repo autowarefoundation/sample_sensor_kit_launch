@@ -1,5 +1,4 @@
 <launch>
-
   <!-- Params -->
   <arg name="launch_driver" default="true"/>
   <arg name="model" default="VLS128"/>
