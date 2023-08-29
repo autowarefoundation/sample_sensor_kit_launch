@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import warnings
 
 from ament_index_python.packages import get_package_share_directory
 import launch
@@ -73,31 +72,17 @@ def launch_setup(context, *args, **kwargs):
     sensor_model = LaunchConfiguration("sensor_model").perform(context)
     sensor_make, sensor_extension = get_lidar_make(sensor_model)
     nebula_decoders_share_dir = get_package_share_directory("nebula_decoders")
-    nebula_ros_share_dir = get_package_share_directory("nebula_ros")
 
-    # Config
-    sensor_params_fp = LaunchConfiguration("config_file").perform(context)
-    if sensor_params_fp == "":
-        warnings.warn("No config file provided, using sensor model default", RuntimeWarning)
-        sensor_params_fp = os.path.join(
-            nebula_ros_share_dir, "config", sensor_make.lower(), sensor_model + ".yaml"
-        )
+    # Calibration file
     sensor_calib_fp = os.path.join(
         nebula_decoders_share_dir,
         "calibration",
         sensor_make.lower(),
         sensor_model + sensor_extension,
     )
-    if not os.path.exists(sensor_params_fp):
-        sensor_params_fp = os.path.join(nebula_ros_share_dir, "config", "BaseParams.yaml")
-    assert os.path.exists(
-        sensor_params_fp
-    ), "Sensor params yaml file under config/ was not found: {}".format(sensor_params_fp)
     assert os.path.exists(
         sensor_calib_fp
     ), "Sensor calib file under calibration/ was not found: {}".format(sensor_calib_fp)
-    with open(sensor_params_fp, "r") as f:
-        sensor_params = yaml.safe_load(f)["/**"]["ros__parameters"]
 
     nodes = []
 
@@ -107,11 +92,13 @@ def launch_setup(context, *args, **kwargs):
             plugin=sensor_make + "DriverRosWrapper",
             name=sensor_make.lower() + "_driver_ros_wrapper_node",
             parameters=[
-                sensor_params,
                 {
                     "calibration_file": sensor_calib_fp,
                     "sensor_model": sensor_model,
                     **create_parameter_dict(
+                        "host_ip",
+                        "sensor_ip",
+                        "data_port",
                         "return_mode",
                         "min_range",
                         "max_range",
@@ -243,6 +230,9 @@ def launch_setup(context, *args, **kwargs):
                     "gnss_port",
                     "cloud_min_angle",
                     "cloud_max_angle",
+                    "packet_mtu_size",
+                    "dual_return_distance_threshold",
+                    "setup_sensor",
                 ),
             }
         ],
@@ -275,6 +265,7 @@ def generate_launch_description():
     add_launch_arg("sensor_model", description="sensor model name")
     add_launch_arg("config_file", "", description="sensor configuration file")
     add_launch_arg("launch_driver", "True", "do launch driver")
+    add_launch_arg("setup_sensor", "True", "configure sensor")
     add_launch_arg("sensor_ip", "192.168.1.201", "device ip address")
     add_launch_arg("host_ip", "255.255.255.255", "host ip address")
     add_launch_arg("scan_phase", "0.0")
@@ -285,6 +276,7 @@ def generate_launch_description():
     add_launch_arg("cloud_max_angle", "360", "maximum view angle setting on device")
     add_launch_arg("data_port", "2368", "device data port number")
     add_launch_arg("gnss_port", "2380", "device gnss port number")
+    add_launch_arg("packet_mtu_size", "1500", "packet mtu size")
     add_launch_arg("rotation_speed", "600", "rotational frequency")
     add_launch_arg("dual_return_distance_threshold", "0.1", "dual return distance threshold")
     add_launch_arg("frame_id", "lidar", "frame id")
