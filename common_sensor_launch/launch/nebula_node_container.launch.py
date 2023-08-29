@@ -73,7 +73,6 @@ def launch_setup(context, *args, **kwargs):
     sensor_model = LaunchConfiguration("sensor_model").perform(context)
     sensor_make, sensor_extension = get_lidar_make(sensor_model)
     nebula_decoders_share_dir = get_package_share_directory("nebula_decoders")
-    nebula_ros_share_dir = get_package_share_directory("nebula_ros")
 
     # Calibration file
     sensor_calib_fp = os.path.join(
