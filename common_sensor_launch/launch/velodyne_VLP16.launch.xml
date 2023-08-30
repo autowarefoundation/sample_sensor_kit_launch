@@ -6,7 +6,7 @@
   <arg name="min_range" default="0.4"/>
   <arg name="sensor_frame" default="velodyne"/>
   <arg name="return_mode" default="SingleStrongest"/>
-  <arg name="device_ip" default="192.168.1.201"/>
+  <arg name="sensor_ip" default="192.168.1.201"/>
   <arg name="host_ip" default="255.255.255.255"/>
   <arg name="data_port" default="2368"/>
   <arg name="scan_phase" default="0.0"/>
@@ -23,7 +23,7 @@
     <arg name="max_range" value="$(var max_range)"/>
     <arg name="min_range" value="$(var min_range)"/>
     <arg name="frame_id" value="$(var sensor_frame)"/>
-    <arg name="sensor_ip" value="$(var device_ip)"/>
+    <arg name="sensor_ip" value="$(var sensor_ip)"/>
     <arg name="host_ip" value="$(var host_ip)"/>
     <arg name="data_port" value="$(var data_port)"/>
     <arg name="scan_phase" value="$(var scan_phase)"/>
@@ -38,6 +38,6 @@
 
   <!-- Velodyne Monitor -->
   <include file="$(find-pkg-share velodyne_monitor)/launch/velodyne_monitor.launch.xml" if="$(var launch_driver)">
-    <arg name="ip_address" value="$(var device_ip)"/>
+    <arg name="ip_address" value="$(var sensor_ip)"/>
   </include>
 </launch>
