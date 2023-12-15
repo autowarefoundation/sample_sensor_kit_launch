@@ -27,19 +27,21 @@ from launch_ros.descriptions import ComposableNode
 
 def launch_setup(context, *args, **kwargs):
     # set concat filter as a component
-    separate_concatenate_node_and_timesync_node_str = DeclareLaunchArgument(
-            "separate_concatenate_node_and_timesync_node",
-            default_value="false",
-            description="Set True to separate concatenate node and timesync node. which will cause to larger memory usage.",
-            )
-    separate_concatenate_node_and_timesync_node = separate_concatenate_node_and_timesync_node_str.lower() == "true"
 
-    # switch between sync_and_concatenate_filter and synchronizer_filter
-    if not separate_concatenate_node_and_timesync_node:
+    # separate components for backward compatibility
+    merge_pointcloud_sync_and_concatenate_nodes_str: str = LaunchConfiguration(
+        "merge_pointcloud_sync_and_concatenate_nodes"
+    ).perform(context)
+    merge_pointcloud_sync_and_concatenate_nodes: bool = (
+        merge_pointcloud_sync_and_concatenate_nodes_str.lower() == "true"
+    )
+
+    if merge_pointcloud_sync_and_concatenate_nodes:
+        # legacy mode for backward compatibility. Not used in default.
         sync_and_concat_component = ComposableNode(
             package="pointcloud_preprocessor",
             plugin="pointcloud_preprocessor::PointCloudConcatenateDataSynchronizerComponent",
-            name="sync_and_concatenate_filter",
+            name="concatenate_data",
             remappings=[
                 ("~/input/twist", "/sensing/vehicle_velocity_converter/twist_with_covariance"),
                 ("output", "concatenated/pointcloud"),
@@ -47,13 +49,12 @@ def launch_setup(context, *args, **kwargs):
             parameters=[
                 {
                     "input_topics": [
-                        "/sensing/lidar/top/outlier_filtered/pointcloud",
-                        "/sensing/lidar/left/outlier_filtered/pointcloud",
-                        "/sensing/lidar/right/outlier_filtered/pointcloud",
+                        "/sensing/lidar/top/pointcloud",
+                        "/sensing/lidar/left/pointcloud",
+                        "/sensing/lidar/right/pointcloud",
                     ],
                     "output_frame": LaunchConfiguration("base_frame"),
-                    "approximate_sync": True,
-                    "publish_synchronized_pointcloud": True, # set true if you want to publish synchronized pointcloud
+                    "input_twist_topic_type": "twist",
                 }
             ],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
@@ -70,9 +71,9 @@ def launch_setup(context, *args, **kwargs):
             parameters=[
                 {
                     "input_topics": [
-                        "/sensing/lidar/top/outlier_filtered/pointcloud",
-                        "/sensing/lidar/left/outlier_filtered/pointcloud",
-                        "/sensing/lidar/right/outlier_filtered/pointcloud",
+                        "/sensing/lidar/top/pointcloud",
+                        "/sensing/lidar/left/pointcloud",
+                        "/sensing/lidar/right/pointcloud",
                     ],
                     "output_frame": LaunchConfiguration("base_frame"),
                     "approximate_sync": True,
@@ -85,13 +86,14 @@ def launch_setup(context, *args, **kwargs):
             package="pointcloud_preprocessor",
             plugin="pointcloud_preprocessor::PointCloudConcatenationComponent",
             name="concatenate_filter",
-            remappings=[("output", "points_raw/concatenated")],
+            remappings=[("output", "concatenated/pointcloud")],
             parameters=[
                 {
+                    # actual input topics becomes + "_synchronized"
                     "input_topics": [
-                        "/sensing/lidar/top/outlier_filtered/pointcloud_synchronized",
-                        "/sensing/lidar/left/outlier_filtered/pointcloud_synchronized",
-                        "/sensing/lidar/right/outlier_filtered/pointcloud_synchronized",
+                        "/sensing/lidar/top/pointcloud",
+                        "/sensing/lidar/left/pointcloud",
+                        "/sensing/lidar/right/pointcloud",
                     ],
                     "output_frame": LaunchConfiguration("base_frame"),
                     "approximate_sync": True,
@@ -139,6 +141,7 @@ def generate_launch_description():
     add_launch_arg("use_intra_process", "False")
     add_launch_arg("use_pointcloud_container", "False")
     add_launch_arg("container_name", "pointcloud_preprocessor_container")
+    add_launch_arg("merge_pointcloud_sync_and_concatenate_nodes", "False")
 
     set_container_executable = SetLaunchConfiguration(
         "container_executable",

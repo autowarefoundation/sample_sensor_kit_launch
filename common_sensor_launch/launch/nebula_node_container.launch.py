@@ -1,4 +1,4 @@
-# Copyright 2020 Tier IV, Inc. All rights reserved.
+# Copyright 2023 Tier IV, Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
+from ament_index_python.packages import get_package_share_directory
 import launch
 from launch.actions import DeclareLaunchArgument
 from launch.actions import OpaqueFunction
@@ -23,6 +26,14 @@ from launch_ros.actions import ComposableNodeContainer
 from launch_ros.actions import LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
 import yaml
+
+
+def get_lidar_make(sensor_name):
+    if sensor_name[:6].lower() == "pandar":
+        return "Hesai", ".csv"
+    elif sensor_name[:3].lower() in ["hdl", "vlp", "vls"]:
+        return "Velodyne", ".yaml"
+    return "unrecognized_sensor_model"
 
 
 def get_vehicle_info(context):
@@ -57,33 +68,51 @@ def launch_setup(context, *args, **kwargs):
             result[x] = LaunchConfiguration(x)
         return result
 
+    # Model and make
+    sensor_model = LaunchConfiguration("sensor_model").perform(context)
+    sensor_make, sensor_extension = get_lidar_make(sensor_model)
+    nebula_decoders_share_dir = get_package_share_directory("nebula_decoders")
+
+    # Calibration file
+    sensor_calib_fp = os.path.join(
+        nebula_decoders_share_dir,
+        "calibration",
+        sensor_make.lower(),
+        sensor_model + sensor_extension,
+    )
+    assert os.path.exists(
+        sensor_calib_fp
+    ), "Sensor calib file under calibration/ was not found: {}".format(sensor_calib_fp)
+
     nodes = []
 
-    # turn packets into pointcloud as in
-    # https://github.com/ros-drivers/velodyne/blob/ros2/velodyne_pointcloud/launch/velodyne_convert_node-VLP16-composed-launch.py
     nodes.append(
         ComposableNode(
-            package="velodyne_pointcloud",
-            plugin="velodyne_pointcloud::Convert",
-            name="velodyne_convert_node",
+            package="nebula_ros",
+            plugin=sensor_make + "DriverRosWrapper",
+            name=sensor_make.lower() + "_driver_ros_wrapper_node",
             parameters=[
                 {
+                    "calibration_file": sensor_calib_fp,
+                    "sensor_model": sensor_model,
                     **create_parameter_dict(
-                        "calibration",
+                        "host_ip",
+                        "sensor_ip",
+                        "data_port",
+                        "return_mode",
                         "min_range",
                         "max_range",
-                        "num_points_thresholds",
-                        "invalid_intensity",
                         "frame_id",
                         "scan_phase",
-                        "view_direction",
-                        "view_width",
+                        "cloud_min_angle",
+                        "cloud_max_angle",
+                        "dual_return_distance_threshold",
                     ),
-                }
+                },
             ],
             remappings=[
-                ("velodyne_points", "pointcloud_raw"),
-                ("velodyne_points_ex", "pointcloud_raw_ex"),
+                ("aw_points", "pointcloud_raw"),
+                ("aw_points_ex", "pointcloud_raw_ex"),
             ],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
@@ -158,12 +187,13 @@ def launch_setup(context, *args, **kwargs):
             name="ring_outlier_filter",
             remappings=[
                 ("input", "rectified/pointcloud_ex"),
-                ("output", "outlier_filtered/pointcloud"),
+                ("output", "pointcloud"),
             ],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
     )
 
+    # set container to run all required components in the same process
     container = ComposableNodeContainer(
         name=LaunchConfiguration("container_name"),
         namespace="pointcloud_preprocessor",
@@ -181,24 +211,28 @@ def launch_setup(context, *args, **kwargs):
     )
 
     driver_component = ComposableNode(
-        package="velodyne_driver",
-        plugin="velodyne_driver::VelodyneDriver",
+        package="nebula_ros",
+        plugin=sensor_make + "HwInterfaceRosWrapper",
         # node is created in a global context, need to avoid name clash
-        name="velodyne_driver",
+        name=sensor_make.lower() + "_hw_interface_ros_wrapper_node",
         parameters=[
             {
+                "sensor_model": sensor_model,
+                "calibration_file": sensor_calib_fp,
                 **create_parameter_dict(
-                    "device_ip",
-                    "gps_time",
-                    "read_once",
-                    "read_fast",
-                    "repeat_delay",
-                    "frame_id",
-                    "model",
-                    "rpm",
-                    "port",
-                    "pcap",
+                    "sensor_ip",
+                    "host_ip",
                     "scan_phase",
+                    "return_mode",
+                    "frame_id",
+                    "rotation_speed",
+                    "data_port",
+                    "gnss_port",
+                    "cloud_min_angle",
+                    "cloud_max_angle",
+                    "packet_mtu_size",
+                    "dual_return_distance_threshold",
+                    "setup_sensor",
                 ),
             }
         ],
@@ -228,38 +262,33 @@ def generate_launch_description():
             DeclareLaunchArgument(name, default_value=default_value, description=description)
         )
 
-    add_launch_arg("model", description="velodyne model name")
+    add_launch_arg("sensor_model", description="sensor model name")
+    add_launch_arg("config_file", "", description="sensor configuration file")
     add_launch_arg("launch_driver", "True", "do launch driver")
-    add_launch_arg("calibration", description="path to calibration file")
-    add_launch_arg("device_ip", "192.168.1.201", "device ip address")
+    add_launch_arg("setup_sensor", "True", "configure sensor")
+    add_launch_arg("sensor_ip", "192.168.1.201", "device ip address")
+    add_launch_arg("host_ip", "255.255.255.255", "host ip address")
     add_launch_arg("scan_phase", "0.0")
     add_launch_arg("base_frame", "base_link", "base frame id")
-    add_launch_arg("container_name", "velodyne_composable_node_container", "container name")
-    add_launch_arg("min_range", description="minimum view range")
-    add_launch_arg("max_range", description="maximum view range")
-    add_launch_arg("pcap", "")
-    add_launch_arg("port", "2368", description="device port number")
-    add_launch_arg("read_fast", "False")
-    add_launch_arg("read_once", "False")
-    add_launch_arg("repeat_delay", "0.0")
-    add_launch_arg("rpm", "600.0", "rotational frequency")
-    add_launch_arg("laserscan_ring", "-1")
-    add_launch_arg("laserscan_resolution", "0.007")
-    add_launch_arg("num_points_thresholds", "300")
-    add_launch_arg("invalid_intensity")
-    add_launch_arg("frame_id", "velodyne", "velodyne frame id")
-    add_launch_arg("gps_time", "False")
-    add_launch_arg("view_direction", description="the center of lidar angle")
-    add_launch_arg("view_width", description="lidar angle: 0~6.28 [rad]")
+    add_launch_arg("min_range", "0.3", "minimum view range for Velodyne sensors")
+    add_launch_arg("max_range", "300.0", "maximum view range for Velodyne sensors")
+    add_launch_arg("cloud_min_angle", "0", "minimum view angle setting on device")
+    add_launch_arg("cloud_max_angle", "360", "maximum view angle setting on device")
+    add_launch_arg("data_port", "2368", "device data port number")
+    add_launch_arg("gnss_port", "2380", "device gnss port number")
+    add_launch_arg("packet_mtu_size", "1500", "packet mtu size")
+    add_launch_arg("rotation_speed", "600", "rotational frequency")
+    add_launch_arg("dual_return_distance_threshold", "0.1", "dual return distance threshold")
+    add_launch_arg("frame_id", "lidar", "frame id")
     add_launch_arg("input_frame", LaunchConfiguration("base_frame"), "use for cropbox")
     add_launch_arg("output_frame", LaunchConfiguration("base_frame"), "use for cropbox")
     add_launch_arg(
         "vehicle_mirror_param_file", description="path to the file of vehicle mirror position yaml"
     )
     add_launch_arg("use_multithread", "False", "use multithread")
-    add_launch_arg("use_intra_process", "False", "use ROS2 component container communication")
+    add_launch_arg("use_intra_process", "False", "use ROS 2 component container communication")
     add_launch_arg("use_pointcloud_container", "false")
-    add_launch_arg("container_name", "velodyne_node_container")
+    add_launch_arg("container_name", "nebula_node_container")
 
     set_container_executable = SetLaunchConfiguration(
         "container_executable",
