@@ -44,7 +44,9 @@ def launch_setup(context, *args, **kwargs):
                 ],
                 "output_frame": LaunchConfiguration("base_frame"),
                 "input_twist_topic_type": "twist",
-                "publish_synchronized_pointcloud": LaunchConfiguration("publish_synchronized_pointcloud"),
+                "publish_synchronized_pointcloud": LaunchConfiguration(
+                    "concatenate_node__publish_synchronized_pointcloud"
+                ),
             }
         ],
         extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
@@ -88,7 +90,7 @@ def generate_launch_description():
     add_launch_arg("use_intra_process", "False")
     add_launch_arg("use_pointcloud_container", "False")
     add_launch_arg("container_name", "pointcloud_preprocessor_container")
-    add_launch_arg("publish_synchronized_pointcloud", "False")
+    add_launch_arg("concatenate_node__publish_synchronized_pointcloud", "False")
 
     set_container_executable = SetLaunchConfiguration(
         "container_executable",
