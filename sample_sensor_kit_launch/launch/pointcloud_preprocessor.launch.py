@@ -29,14 +29,14 @@ def launch_setup(context, *args, **kwargs):
     # set concat filter as a component
 
     # separate components for backward compatibility
-    merge_pointcloud_sync_and_concatenate_nodes_str: str = LaunchConfiguration(
-        "merge_pointcloud_sync_and_concatenate_nodes"
+    separate_pointcloud_sync_and_concatenate_nodes_str: str = LaunchConfiguration(
+        "concatenate_data__separate_pointcloud_sync_and_concatenate_nodes"
     ).perform(context)
-    merge_pointcloud_sync_and_concatenate_nodes: bool = (
-        merge_pointcloud_sync_and_concatenate_nodes_str.lower() == "true"
+    separate_pointcloud_sync_and_concatenate_nodes: bool = (
+        separate_pointcloud_sync_and_concatenate_nodes_str.lower() == "true"
     )
 
-    if merge_pointcloud_sync_and_concatenate_nodes:
+    if not separate_pointcloud_sync_and_concatenate_nodes:
         # legacy mode for backward compatibility. Not used in default.
         sync_and_concat_component = ComposableNode(
             package="pointcloud_preprocessor",
@@ -141,7 +141,7 @@ def generate_launch_description():
     add_launch_arg("use_intra_process", "False")
     add_launch_arg("use_pointcloud_container", "False")
     add_launch_arg("container_name", "pointcloud_preprocessor_container")
-    add_launch_arg("merge_pointcloud_sync_and_concatenate_nodes", "False")
+    add_launch_arg("concatenate_data__separate_pointcloud_sync_and_concatenate_nodes", "True")
 
     set_container_executable = SetLaunchConfiguration(
         "container_executable",
