@@ -195,7 +195,7 @@ def launch_setup(context, *args, **kwargs):
 
     # set container to run all required components in the same process
     container = ComposableNodeContainer(
-        name=LaunchConfiguration("lidar_container_name"),
+        name=LaunchConfiguration("container_name"),
         namespace="pointcloud_preprocessor",
         package="rclcpp_components",
         executable=LaunchConfiguration("container_executable"),
