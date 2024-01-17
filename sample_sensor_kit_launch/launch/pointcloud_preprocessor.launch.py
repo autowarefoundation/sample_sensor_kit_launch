@@ -57,7 +57,7 @@ def launch_setup(context, *args, **kwargs):
         executable=LaunchConfiguration("container_executable"),
         composable_node_descriptions=[],
         condition=UnlessCondition(
-            LaunchConfiguration("include_concat_node_in_pointcloud_container")
+            LaunchConfiguration("use_pointcloud_container")
         ),
         output="screen",
     )
