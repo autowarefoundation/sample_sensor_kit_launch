@@ -56,9 +56,7 @@ def launch_setup(context, *args, **kwargs):
         package="rclcpp_components",
         executable=LaunchConfiguration("container_executable"),
         composable_node_descriptions=[],
-        condition=UnlessCondition(
-            LaunchConfiguration("use_pointcloud_container")
-        ),
+        condition=UnlessCondition(LaunchConfiguration("use_pointcloud_container")),
         output="screen",
     )
 
