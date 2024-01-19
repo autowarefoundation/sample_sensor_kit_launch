@@ -33,8 +33,6 @@
       <arg name="output_topic_gnss_fixed" value="fixed"/>
 
       <arg name="use_gnss_ins_orientation" value="true"/>
-
-      <arg name="gnss_frame" value="gnss_link"/>
     </include>
   </group>
 </launch>
