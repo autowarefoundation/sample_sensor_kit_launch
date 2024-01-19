@@ -88,6 +88,14 @@ def launch_setup(context, *args, **kwargs):
 
     nodes.append(
         ComposableNode(
+            package="glog_component",
+            plugin="GlogComponent",
+            name="glog_component",
+        )
+    )
+
+    nodes.append(
+        ComposableNode(
             package="nebula_ros",
             plugin=sensor_make + "DriverRosWrapper",
             name=sensor_make.lower() + "_driver_ros_wrapper_node",
@@ -200,7 +208,7 @@ def launch_setup(context, *args, **kwargs):
         package="rclcpp_components",
         executable=LaunchConfiguration("container_executable"),
         composable_node_descriptions=nodes,
-        output="screen",
+        output="both",
     )
 
     driver_component = ComposableNode(
