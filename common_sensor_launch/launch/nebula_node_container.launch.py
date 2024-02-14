@@ -54,6 +54,19 @@ def get_vehicle_info(context):
     return p
 
 
+def get_cropbox_parameters_from_info(info: dict, cropbox_name: str = "", negative: bool = False):
+    cropbox_parameters = {}
+    cropbox_parameters[cropbox_name] = {}
+    cropbox_parameters[cropbox_name]["min_x"] = info["min_longitudinal_offset"]
+    cropbox_parameters[cropbox_name]["max_x"] = info["max_longitudinal_offset"]
+    cropbox_parameters[cropbox_name]["min_y"] = info["min_lateral_offset"]
+    cropbox_parameters[cropbox_name]["max_y"] = info["max_lateral_offset"]
+    cropbox_parameters[cropbox_name]["min_z"] = info["min_height_offset"]
+    cropbox_parameters[cropbox_name]["max_z"] = info["max_height_offset"]
+    cropbox_parameters[cropbox_name]["negative"] = negative
+    return cropbox_parameters
+
+
 def get_vehicle_mirror_info(context):
     path = LaunchConfiguration("vehicle_mirror_param_file").perform(context)
     with open(path, "r") as f:
@@ -126,52 +139,59 @@ def launch_setup(context, *args, **kwargs):
         )
     )
 
+    # create cropbox parameters
     cropbox_parameters = create_parameter_dict("input_frame", "output_frame")
     cropbox_parameters["negative"] = True
 
     vehicle_info = get_vehicle_info(context)
-    cropbox_parameters["min_x"] = vehicle_info["min_longitudinal_offset"]
-    cropbox_parameters["max_x"] = vehicle_info["max_longitudinal_offset"]
-    cropbox_parameters["min_y"] = vehicle_info["min_lateral_offset"]
-    cropbox_parameters["max_y"] = vehicle_info["max_lateral_offset"]
-    cropbox_parameters["min_z"] = vehicle_info["min_height_offset"]
-    cropbox_parameters["max_z"] = vehicle_info["max_height_offset"]
+    vehicle_cropbox_parameters = get_cropbox_parameters_from_info(
+        vehicle_info, cropbox_name="vehicle", negative=True
+    )
+    mirror_info = get_vehicle_mirror_info(context)
+    mirror_cropbox_parameters = get_cropbox_parameters_from_info(
+        mirror_info, cropbox_name="mirror", negative=True
+    )
+
+    cropbox_parameters["cropboxes"] = {}
+    cropbox_parameters["cropboxes"].update(vehicle_cropbox_parameters)
+    cropbox_parameters["cropboxes"].update(mirror_cropbox_parameters)
+    cropbox_parameters["cropboxes_names"] = list(cropbox_parameters["cropboxes"].keys())
 
     nodes.append(
         ComposableNode(
             package="pointcloud_preprocessor",
-            plugin="pointcloud_preprocessor::CropBoxFilterComponent",
-            name="crop_box_filter_self",
+            plugin="pointcloud_preprocessor::CropBoxesFilterComponent",
+            name="crop_boxes_filter",
             remappings=[
                 ("input", "pointcloud_raw_ex"),
-                ("output", "self_cropped/pointcloud_ex"),
+                ("output", "boxes_cropped/pointcloud_ex"),
             ],
             parameters=[cropbox_parameters],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
     )
 
-    mirror_info = get_vehicle_mirror_info(context)
-    cropbox_parameters["min_x"] = mirror_info["min_longitudinal_offset"]
-    cropbox_parameters["max_x"] = mirror_info["max_longitudinal_offset"]
-    cropbox_parameters["min_y"] = mirror_info["min_lateral_offset"]
-    cropbox_parameters["max_y"] = mirror_info["max_lateral_offset"]
-    cropbox_parameters["min_z"] = mirror_info["min_height_offset"]
-    cropbox_parameters["max_z"] = mirror_info["max_height_offset"]
+    # mirror_info = get_vehicle_mirror_info(context)
+    # cropbox_parameters["min_x"] = mirror_info["min_longitudinal_offset"]
+    # cropbox_parameters["max_x"] = mirror_info["max_longitudinal_offset"]
+    # cropbox_parameters["min_y"] = mirror_info["min_lateral_offset"]
+    # cropbox_parameters["max_y"] = mirror_info["max_lateral_offset"]
+    # cropbox_parameters["min_z"] = mirror_info["min_height_offset"]
+    # cropbox_parameters["max_z"] = mirror_info["max_height_offset"]
 
-    nodes.append(
-        ComposableNode(
-            package="pointcloud_preprocessor",
-            plugin="pointcloud_preprocessor::CropBoxFilterComponent",
-            name="crop_box_filter_mirror",
-            remappings=[
-                ("input", "self_cropped/pointcloud_ex"),
-                ("output", "mirror_cropped/pointcloud_ex"),
-            ],
-            parameters=[cropbox_parameters],
-            extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
-        )
-    )
+    # nodes.append(
+    #     ComposableNode(
+    #         package="pointcloud_preprocessor",
+    #         plugin="pointcloud_preprocessor::CropBoxFilterComponent",
+    #         name="crop_box_filter_mirror",
+    #         remappings=[
+    #             ("input", "self_cropped/pointcloud_ex"),
+    #             ("output", "mirror_cropped/pointcloud_ex"),
+    #         ],
+    #         parameters=[cropbox_parameters],
+    #         extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
+    #     )
+    # )
 
     nodes.append(
         ComposableNode(
@@ -181,7 +201,7 @@ def launch_setup(context, *args, **kwargs):
             remappings=[
                 ("~/input/twist", "/sensing/vehicle_velocity_converter/twist_with_covariance"),
                 ("~/input/imu", "/sensing/imu/imu_data"),
-                ("~/input/pointcloud", "mirror_cropped/pointcloud_ex"),
+                ("~/input/pointcloud", "boxes_cropped/pointcloud_ex"),
                 ("~/output/pointcloud", "rectified/pointcloud_ex"),
             ],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
