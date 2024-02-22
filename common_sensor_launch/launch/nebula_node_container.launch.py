@@ -190,9 +190,9 @@ def launch_setup(context, *args, **kwargs):
 
     # Ring Outlier Filter is the last component in the pipeline, so control the output frame here
     if LaunchConfiguration("output_as_sensor_frame").perform(context):
-        ringoutlier_filter_parameters = {"output_frame": LaunchConfiguration("frame_id")}
+        ring_outlier_filter_parameters = {"output_frame": LaunchConfiguration("frame_id")}
     else:
-        ringoutlier_filter_parameters = {"output_frame": ""} # keep the output frame as the input frame
+        ring_outlier_filter_parameters = {"output_frame": ""} # keep the output frame as the input frame
     nodes.append(
         ComposableNode(
             package="pointcloud_preprocessor",
@@ -202,7 +202,7 @@ def launch_setup(context, *args, **kwargs):
                 ("input", "rectified/pointcloud_ex"),
                 ("output", "pointcloud"),
             ],
-            parameters=[ringoutlier_filter_parameters],
+            parameters=[ring_outlier_filter_parameters],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
     )
