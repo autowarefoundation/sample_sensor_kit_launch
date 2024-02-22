@@ -192,7 +192,9 @@ def launch_setup(context, *args, **kwargs):
     if LaunchConfiguration("output_as_sensor_frame").perform(context):
         ring_outlier_filter_parameters = {"output_frame": LaunchConfiguration("frame_id")}
     else:
-        ring_outlier_filter_parameters = {"output_frame": ""} # keep the output frame as the input frame
+        ring_outlier_filter_parameters = {
+            "output_frame": ""
+        }  # keep the output frame as the input frame
     nodes.append(
         ComposableNode(
             package="pointcloud_preprocessor",
