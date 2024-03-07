@@ -88,6 +88,14 @@ def launch_setup(context, *args, **kwargs):
 
     nodes.append(
         ComposableNode(
+            package="glog_component",
+            plugin="GlogComponent",
+            name="glog_component",
+        )
+    )
+
+    nodes.append(
+        ComposableNode(
             package="nebula_ros",
             plugin=sensor_make + "DriverRosWrapper",
             name=sensor_make.lower() + "_driver_ros_wrapper_node",
@@ -181,6 +189,13 @@ def launch_setup(context, *args, **kwargs):
         )
     )
 
+    # Ring Outlier Filter is the last component in the pipeline, so control the output frame here
+    if LaunchConfiguration("output_as_sensor_frame").perform(context):
+        ring_outlier_filter_parameters = {"output_frame": LaunchConfiguration("frame_id")}
+    else:
+        ring_outlier_filter_parameters = {
+            "output_frame": ""
+        }  # keep the output frame as the input frame
     nodes.append(
         ComposableNode(
             package="pointcloud_preprocessor",
@@ -188,8 +203,9 @@ def launch_setup(context, *args, **kwargs):
             name="ring_outlier_filter",
             remappings=[
                 ("input", "rectified/pointcloud_ex"),
-                ("output", "outlier_filtered/pointcloud"),
+                ("output", "pointcloud_before_sync"),
             ],
+            parameters=[ring_outlier_filter_parameters],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
     )
@@ -201,14 +217,7 @@ def launch_setup(context, *args, **kwargs):
         package="rclcpp_components",
         executable=LaunchConfiguration("container_executable"),
         composable_node_descriptions=nodes,
-        condition=UnlessCondition(LaunchConfiguration("use_pointcloud_container")),
-        output="screen",
-    )
-
-    component_loader = LoadComposableNodes(
-        composable_node_descriptions=nodes,
-        target_container=LaunchConfiguration("container_name"),
-        condition=IfCondition(LaunchConfiguration("use_pointcloud_container")),
+        output="both",
     )
 
     driver_component = ComposableNode(
@@ -239,19 +248,13 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    target_container = (
-        container
-        if UnlessCondition(LaunchConfiguration("use_pointcloud_container")).evaluate(context)
-        else LaunchConfiguration("container_name")
-    )
-
     driver_component_loader = LoadComposableNodes(
         composable_node_descriptions=[driver_component],
-        target_container=target_container,
+        target_container=container,
         condition=IfCondition(LaunchConfiguration("launch_driver")),
     )
 
-    return [container, component_loader, driver_component_loader]
+    return [container, driver_component_loader]
 
 
 def generate_launch_description():
@@ -288,8 +291,8 @@ def generate_launch_description():
     )
     add_launch_arg("use_multithread", "False", "use multithread")
     add_launch_arg("use_intra_process", "False", "use ROS 2 component container communication")
-    add_launch_arg("use_pointcloud_container", "false")
-    add_launch_arg("container_name", "nebula_node_container")
+    add_launch_arg("lidar_container_name", "nebula_node_container")
+    add_launch_arg("output_as_sensor_frame", "True", "output final pointcloud in sensor frame")
 
     set_container_executable = SetLaunchConfiguration(
         "container_executable",
