@@ -35,6 +35,15 @@ def launch_setup(context, *args, **kwargs):
         separate_pointcloud_sync_and_concatenate_nodes_str.lower() == "true"
     )
 
+
+    common_input_parameter = {
+        "input_topics": [
+            "/sensing/lidar/top/pointcloud_before_sync",
+            "/sensing/lidar/left/pointcloud_before_sync",
+            "/sensing/lidar/right/pointcloud_before_sync",
+        ],
+        "input_twist_topic_type": "twist",
+    }
     if not separate_pointcloud_sync_and_concatenate_nodes:
         # legacy mode for backward compatibility. Not used in default.
         sync_and_concat_component = ComposableNode(
@@ -45,15 +54,10 @@ def launch_setup(context, *args, **kwargs):
                 ("~/input/twist", "/sensing/vehicle_velocity_converter/twist_with_covariance"),
                 ("output", "concatenated/pointcloud"),
             ],
-            parameters=[
+            parameters= [
+                common_input_parameter,
                 {
-                    "input_topics": [
-                        "/sensing/lidar/top/pointcloud_before_sync",
-                        "/sensing/lidar/left/pointcloud_before_sync",
-                        "/sensing/lidar/right/pointcloud_before_sync",
-                    ],
                     "output_frame": LaunchConfiguration("base_frame"),
-                    "input_twist_topic_type": "twist",
                 }
             ],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
@@ -67,13 +71,9 @@ def launch_setup(context, *args, **kwargs):
             remappings=[
                 ("~/input/twist", "/sensing/vehicle_velocity_converter/twist_with_covariance"),
             ],
-            parameters=[
+            parameters= [
+                common_input_parameter,
                 {
-                    "input_topics": [
-                        "/sensing/lidar/top/pointcloud_before_sync",
-                        "/sensing/lidar/left/pointcloud_before_sync",
-                        "/sensing/lidar/right/pointcloud_before_sync",
-                    ],
                     "output_frame": LaunchConfiguration("base_frame"),
                     "approximate_sync": True,
                 }
@@ -101,23 +101,6 @@ def launch_setup(context, *args, **kwargs):
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
         concat_components = [time_sync_component, concat_component]
-
-    # set container to run all required components in the same process
-    # container = ComposableNodeContainer(
-    #     name=LaunchConfiguration("pointcloud_container_name"),
-    #     namespace="",
-    #     package="rclcpp_components",
-    #     executable=LaunchConfiguration("container_executable"),
-    #     composable_node_descriptions=[],
-    #     condition=UnlessCondition(LaunchConfiguration("use_pointcloud_container")),
-    #     output="screen",
-    # )
-
-    # target_container = (
-    #     container
-    #     if UnlessCondition(LaunchConfiguration("use_pointcloud_container")).evaluate(context)
-    #     else LaunchConfiguration("pointcloud_container_name")
-    # )
 
     # load concat or passthrough filter
     concat_loader = LoadComposableNodes(
