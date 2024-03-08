@@ -20,7 +20,7 @@ from launch.actions import SetLaunchConfiguration
 from launch.conditions import IfCondition
 from launch.conditions import UnlessCondition
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import LoadComposableNodes
+from launch_ros.actions import LoadComposableNodes, ComposableNodeContainer
 from launch_ros.descriptions import ComposableNode
 
 
@@ -103,26 +103,27 @@ def launch_setup(context, *args, **kwargs):
         concat_components = [time_sync_component, concat_component]
 
     # set container to run all required components in the same process
-    container = ComposableNodeContainer(
-        name=LaunchConfiguration("pointcloud_container_name"),
-        namespace="",
-        package="rclcpp_components",
-        executable=LaunchConfiguration("container_executable"),
-        composable_node_descriptions=[],
-        condition=UnlessCondition(LaunchConfiguration("use_pointcloud_container")),
-        output="screen",
-    )
+    # container = ComposableNodeContainer(
+    #     name=LaunchConfiguration("pointcloud_container_name"),
+    #     namespace="",
+    #     package="rclcpp_components",
+    #     executable=LaunchConfiguration("container_executable"),
+    #     composable_node_descriptions=[],
+    #     condition=UnlessCondition(LaunchConfiguration("use_pointcloud_container")),
+    #     output="screen",
+    # )
 
-    target_container = (
-        container
-        if UnlessCondition(LaunchConfiguration("use_pointcloud_container")).evaluate(context)
-        else LaunchConfiguration("pointcloud_container_name")
-    )
+    # target_container = (
+    #     container
+    #     if UnlessCondition(LaunchConfiguration("use_pointcloud_container")).evaluate(context)
+    #     else LaunchConfiguration("pointcloud_container_name")
+    # )
 
     # load concat or passthrough filter
     concat_loader = LoadComposableNodes(
         composable_node_descriptions=concat_components,
-        target_container=target_container,
+        # target_container=target_container,
+        target_container=LaunchConfiguration("pointcloud_container_name"),
         condition=IfCondition(LaunchConfiguration("use_concat_filter")),
     )
 
