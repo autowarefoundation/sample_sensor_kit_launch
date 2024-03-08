@@ -20,7 +20,7 @@ from launch.actions import SetLaunchConfiguration
 from launch.conditions import IfCondition
 from launch.conditions import UnlessCondition
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import LoadComposableNodes, ComposableNodeContainer
+from launch_ros.actions import LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
 
 
@@ -34,7 +34,6 @@ def launch_setup(context, *args, **kwargs):
     separate_pointcloud_sync_and_concatenate_nodes: bool = (
         separate_pointcloud_sync_and_concatenate_nodes_str.lower() == "true"
     )
-
 
     common_input_parameter = {
         "input_topics": [
@@ -54,11 +53,12 @@ def launch_setup(context, *args, **kwargs):
                 ("~/input/twist", "/sensing/vehicle_velocity_converter/twist_with_covariance"),
                 ("output", "concatenated/pointcloud"),
             ],
-            parameters= [
+            parameters=[
                 common_input_parameter,
                 {
                     "output_frame": LaunchConfiguration("base_frame"),
-                }
+                    "publish_synchronized_pointcloud": True,
+                },
             ],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
@@ -71,12 +71,12 @@ def launch_setup(context, *args, **kwargs):
             remappings=[
                 ("~/input/twist", "/sensing/vehicle_velocity_converter/twist_with_covariance"),
             ],
-            parameters= [
+            parameters=[
                 common_input_parameter,
                 {
                     "output_frame": LaunchConfiguration("base_frame"),
                     "approximate_sync": True,
-                }
+                },
             ],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
@@ -123,7 +123,7 @@ def generate_launch_description():
     add_launch_arg("use_multithread", "False")
     add_launch_arg("use_intra_process", "False")
     add_launch_arg("use_pointcloud_container", "False")
-    add_launch_arg("concatenate_data__separate_pointcloud_sync_and_concatenate_nodes", "True")
+    add_launch_arg("concatenate_data__separate_pointcloud_sync_and_concatenate_nodes", "False")
     add_launch_arg("pointcloud_container_name", "pointcloud_container")
 
     set_container_executable = SetLaunchConfiguration(
