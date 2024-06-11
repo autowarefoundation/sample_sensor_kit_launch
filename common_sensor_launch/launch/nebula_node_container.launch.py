@@ -189,7 +189,7 @@ def launch_setup(context, *args, **kwargs):
     )
 
     # Ring Outlier Filter is the last component in the pipeline, so control the output frame here
-    if LaunchConfiguration("output_as_sensor_frame").perform(context):
+    if LaunchConfiguration("output_as_sensor_frame").perform(context).lower() == "true":
         ring_outlier_filter_parameters = {"output_frame": LaunchConfiguration("frame_id")}
     else:
         ring_outlier_filter_parameters = {
