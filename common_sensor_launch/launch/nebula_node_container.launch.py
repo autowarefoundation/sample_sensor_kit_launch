@@ -25,7 +25,7 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer
 from launch_ros.actions import LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
-from launch_ros.parameter_descriptions import ParameterFile
+from launch_ros.substitutions import FindPackageShare
 import yaml
 
 
@@ -55,14 +55,11 @@ def get_vehicle_info(context):
     return p
 
 
-def get_vehicle_mirror_info(context):
-    path = LaunchConfiguration("vehicle_mirror_param_file").perform(context)
-    with open(path, "r") as f:
-        p = yaml.safe_load(f)["/**"]["ros__parameters"]
-    return p
-
-
 def launch_setup(context, *args, **kwargs):
+    def load_composable_node_param(param_path):
+        with open(LaunchConfiguration(param_path).perform(context), "r") as f:
+            return yaml.safe_load(f)["/**"]["ros__parameters"]
+
     def create_parameter_dict(*args):
         result = {}
         for x in args:
@@ -84,12 +81,6 @@ def launch_setup(context, *args, **kwargs):
     assert os.path.exists(
         sensor_calib_fp
     ), "Sensor calib file under calibration/ was not found: {}".format(sensor_calib_fp)
-
-    # Pointcloud preprocessor parameters
-    distortion_corrector_node_param = ParameterFile(
-        param_file=LaunchConfiguration("distortion_correction_node_param_path").perform(context),
-        allow_substs=True,
-    )
 
     nodes = []
 
@@ -158,7 +149,7 @@ def launch_setup(context, *args, **kwargs):
         )
     )
 
-    mirror_info = get_vehicle_mirror_info(context)
+    mirror_info = load_composable_node_param("vehicle_mirror_param_file")
     cropbox_parameters["min_x"] = mirror_info["min_longitudinal_offset"]
     cropbox_parameters["max_x"] = mirror_info["max_longitudinal_offset"]
     cropbox_parameters["min_y"] = mirror_info["min_lateral_offset"]
@@ -191,7 +182,7 @@ def launch_setup(context, *args, **kwargs):
                 ("~/input/pointcloud", "mirror_cropped/pointcloud_ex"),
                 ("~/output/pointcloud", "rectified/pointcloud_ex"),
             ],
-            parameters=[distortion_corrector_node_param],
+            parameters=[load_composable_node_param("distortion_corrector_node_param_file")],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
     )
@@ -273,8 +264,6 @@ def generate_launch_description():
             DeclareLaunchArgument(name, default_value=default_value, description=description)
         )
 
-    pointcloud_preprocessor_share_dir = get_package_share_directory("pointcloud_preprocessor")
-
     add_launch_arg("sensor_model", description="sensor model name")
     add_launch_arg("config_file", "", description="sensor configuration file")
     add_launch_arg("launch_driver", "True", "do launch driver")
@@ -295,22 +284,17 @@ def generate_launch_description():
     add_launch_arg("frame_id", "lidar", "frame id")
     add_launch_arg("input_frame", LaunchConfiguration("base_frame"), "use for cropbox")
     add_launch_arg("output_frame", LaunchConfiguration("base_frame"), "use for cropbox")
-    add_launch_arg(
-        "vehicle_mirror_param_file", description="path to the file of vehicle mirror position yaml"
-    )
-    add_launch_arg(
-        "distortion_correction_node_param_path",
-        os.path.join(
-            pointcloud_preprocessor_share_dir,
-            "config",
-            "distortion_corrector_node.param.yaml",
-        ),
-        description="path to parameter file of distortion correction node",
-    )
     add_launch_arg("use_multithread", "False", "use multithread")
     add_launch_arg("use_intra_process", "False", "use ROS 2 component container communication")
     add_launch_arg("lidar_container_name", "nebula_node_container")
     add_launch_arg("output_as_sensor_frame", "True", "output final pointcloud in sensor frame")
+    add_launch_arg(
+        "vehicle_mirror_param_file", description="path to the file of vehicle mirror position yaml"
+    )
+    add_launch_arg(
+        "distortion_corrector_node_param_file",
+        [FindPackageShare("common_sensor_launch"), "/config/distortion_corrector_node.param.yaml"],
+    )
 
     set_container_executable = SetLaunchConfiguration(
         "container_executable",
