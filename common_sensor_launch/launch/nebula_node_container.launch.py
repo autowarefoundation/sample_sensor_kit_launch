@@ -126,8 +126,9 @@ def launch_setup(context, *args, **kwargs):
                 },
             ],
             remappings=[
-                ("aw_points", "pointcloud_raw"),
-                ("aw_points_ex", "pointcloud_raw_ex"),
+                # cSpell:ignore knzo25
+                # TODO(knzo25): fix the remapping once nebula gets updated
+                ("velodyne_points", "pointcloud_raw_ex"),
             ],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
