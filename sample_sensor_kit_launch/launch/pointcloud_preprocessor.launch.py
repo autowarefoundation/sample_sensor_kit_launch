@@ -27,8 +27,8 @@ from launch_ros.descriptions import ComposableNode
 def launch_setup(context, *args, **kwargs):
     # set concat filter as a component
     concat_component = ComposableNode(
-        package="pointcloud_preprocessor",
-        plugin="pointcloud_preprocessor::PointCloudConcatenateDataSynchronizerComponent",
+        package="autoware_pointcloud_preprocessor",
+        plugin="autoware::pointcloud_preprocessor::PointCloudConcatenateDataSynchronizerComponent",
         name="concatenate_data",
         remappings=[
             ("~/input/twist", "/sensing/vehicle_velocity_converter/twist_with_covariance"),
