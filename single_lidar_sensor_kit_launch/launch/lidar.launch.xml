@@ -23,12 +23,5 @@
         <arg name="container_name" value="pointcloud_container"/>
       </include>
     </group>
-
-    <include file="$(find-pkg-share single_lidar_sensor_kit_launch)/launch/pointcloud_preprocessor.launch.py">
-      <arg name="base_frame" value="base_link"/>
-      <arg name="use_intra_process" value="true"/>
-      <arg name="use_multithread" value="true"/>
-      <arg name="pointcloud_container_name" value="$(var pointcloud_container_name)"/>
-    </include>
   </group>
 </launch>
