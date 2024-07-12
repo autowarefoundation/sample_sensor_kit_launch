@@ -25,6 +25,7 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer
 from launch_ros.actions import LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
+from launch_ros.parameter_descriptions import ParameterFile
 import yaml
 
 
@@ -84,6 +85,12 @@ def launch_setup(context, *args, **kwargs):
         sensor_calib_fp
     ), "Sensor calib file under calibration/ was not found: {}".format(sensor_calib_fp)
 
+    # Pointcloud preprocessor parameters
+    distortion_corrector_node_param = ParameterFile(
+        param_file=LaunchConfiguration("distortion_correction_node_param_path").perform(context),
+        allow_substs=True,
+    )
+
     nodes = []
 
     nodes.append(
@@ -119,8 +126,9 @@ def launch_setup(context, *args, **kwargs):
                 },
             ],
             remappings=[
-                ("aw_points", "pointcloud_raw"),
-                ("aw_points_ex", "pointcloud_raw_ex"),
+                # cSpell:ignore knzo25
+                # TODO(knzo25): fix the remapping once nebula gets updated
+                ("velodyne_points", "pointcloud_raw_ex"),
             ],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
@@ -184,12 +192,13 @@ def launch_setup(context, *args, **kwargs):
                 ("~/input/pointcloud", "mirror_cropped/pointcloud_ex"),
                 ("~/output/pointcloud", "rectified/pointcloud_ex"),
             ],
+            parameters=[distortion_corrector_node_param],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
     )
 
     # Ring Outlier Filter is the last component in the pipeline, so control the output frame here
-    if LaunchConfiguration("output_as_sensor_frame").perform(context):
+    if LaunchConfiguration("output_as_sensor_frame").perform(context).lower() == "true":
         ring_outlier_filter_parameters = {"output_frame": LaunchConfiguration("frame_id")}
     else:
         ring_outlier_filter_parameters = {
@@ -265,6 +274,8 @@ def generate_launch_description():
             DeclareLaunchArgument(name, default_value=default_value, description=description)
         )
 
+    common_sensor_share_dir = get_package_share_directory("common_sensor_launch")
+
     add_launch_arg("sensor_model", description="sensor model name")
     add_launch_arg("config_file", "", description="sensor configuration file")
     add_launch_arg("launch_driver", "True", "do launch driver")
@@ -285,13 +296,22 @@ def generate_launch_description():
     add_launch_arg("frame_id", "lidar", "frame id")
     add_launch_arg("input_frame", LaunchConfiguration("base_frame"), "use for cropbox")
     add_launch_arg("output_frame", LaunchConfiguration("base_frame"), "use for cropbox")
-    add_launch_arg(
-        "vehicle_mirror_param_file", description="path to the file of vehicle mirror position yaml"
-    )
     add_launch_arg("use_multithread", "False", "use multithread")
     add_launch_arg("use_intra_process", "False", "use ROS 2 component container communication")
     add_launch_arg("lidar_container_name", "nebula_node_container")
     add_launch_arg("output_as_sensor_frame", "True", "output final pointcloud in sensor frame")
+    add_launch_arg(
+        "vehicle_mirror_param_file", description="path to the file of vehicle mirror position yaml"
+    )
+    add_launch_arg(
+        "distortion_correction_node_param_path",
+        os.path.join(
+            common_sensor_share_dir,
+            "config",
+            "distortion_corrector_node.param.yaml",
+        ),
+        description="path to parameter file of distortion correction node",
+    )
 
     set_container_executable = SetLaunchConfiguration(
         "container_executable",
