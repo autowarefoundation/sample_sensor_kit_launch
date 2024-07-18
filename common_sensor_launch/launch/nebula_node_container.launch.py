@@ -94,9 +94,7 @@ def launch_setup(context, *args, **kwargs):
 
     # Pointcloud preprocessor parameters
     distortion_corrector_node_param = ParameterFile(
-        param_file=LaunchConfiguration("distortion_correction_node_param_path").perform(
-            context
-        ),
+        param_file=LaunchConfiguration("distortion_correction_node_param_path").perform(context),
         allow_substs=True,
     )
 
