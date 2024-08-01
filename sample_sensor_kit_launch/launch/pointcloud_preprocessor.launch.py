@@ -1,4 +1,4 @@
-# Copyright 2020 Tier IV, Inc. All rights reserved.
+# Copyright 2024 Tier IV, Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 
+from ament_index_python.packages import get_package_share_directory
 import launch
 from launch.actions import DeclareLaunchArgument
 from launch.actions import OpaqueFunction
@@ -22,9 +24,17 @@ from launch.conditions import UnlessCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
+from launch_ros.parameter_descriptions import ParameterFile
 
 
 def launch_setup(context, *args, **kwargs):
+    # Pointcloud preprocessor parameters
+    concatenate_and_time_sync_node_param = ParameterFile(
+        param_file=LaunchConfiguration("concatenate_and_time_sync_node_param_path").perform(
+            context
+        ),
+        allow_substs=True,
+    )
     # set concat filter as a component
     concat_component = ComposableNode(
         package="autoware_pointcloud_preprocessor",
@@ -34,18 +44,7 @@ def launch_setup(context, *args, **kwargs):
             ("~/input/twist", "/sensing/vehicle_velocity_converter/twist_with_covariance"),
             ("output", "concatenated/pointcloud"),
         ],
-        parameters=[
-            {
-                "input_topics": [
-                    "/sensing/lidar/top/pointcloud_before_sync",
-                    "/sensing/lidar/left/pointcloud_before_sync",
-                    "/sensing/lidar/right/pointcloud_before_sync",
-                ],
-                "output_frame": LaunchConfiguration("base_frame"),
-                "input_twist_topic_type": "twist",
-                "publish_synchronized_pointcloud": True,
-            }
-        ],
+        parameters=[concatenate_and_time_sync_node_param],
         extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
     )
 
@@ -62,13 +61,27 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     launch_arguments = []
 
-    def add_launch_arg(name: str, default_value=None):
-        launch_arguments.append(DeclareLaunchArgument(name, default_value=default_value))
+    def add_launch_arg(name: str, default_value=None, description=None):
+        # a default_value of None is equivalent to not passing that kwarg at all
+        launch_arguments.append(
+            DeclareLaunchArgument(name, default_value=default_value, description=description)
+        )
+
+    sample_sensor_kit_share_dir = get_package_share_directory("sample_sensor_kit_launch")
 
     add_launch_arg("base_frame", "base_link")
     add_launch_arg("use_multithread", "False")
     add_launch_arg("use_intra_process", "False")
     add_launch_arg("pointcloud_container_name", "pointcloud_container")
+    add_launch_arg(
+        "concatenate_and_time_sync_node_param_path",
+        os.path.join(
+            sample_sensor_kit_share_dir,
+            "config",
+            "concatenate_and_time_sync_node.param.yaml",
+        ),
+        description="path to parameter file of concatenate and time synchronization node",
+    )
 
     set_container_executable = SetLaunchConfiguration(
         "container_executable",
