@@ -83,7 +83,7 @@ def launch_setup(context, *args, **kwargs):
             "calibration",
             sensor_make.lower(),
             sensor_model + sensor_extension,
-            )
+        )
         assert os.path.exists(
             sensor_calib_fp
         ), "Sensor calib file under calibration/ was not found: {}".format(sensor_calib_fp)
