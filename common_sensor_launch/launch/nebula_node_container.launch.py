@@ -180,7 +180,7 @@ def launch_setup(context, *args, **kwargs):
                 ("input", "self_cropped/pointcloud_ex"),
                 ("output", "mirror_cropped/pointcloud_ex"),
             ],
-            parameters=[cropbox_parameters],
+            parameters=[filter_param, cropbox_parameters],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
     )
