@@ -90,7 +90,7 @@ def launch_setup(context, *args, **kwargs):
         param_file=LaunchConfiguration("distortion_correction_node_param_path").perform(context),
         allow_substs=True,
     )
-    ring_corrector_node_param = ParameterFile(
+    ring_outlier_filter_node_param = ParameterFile(
         param_file=LaunchConfiguration("ring_outlier_filter_node_param_path").perform(context),
         allow_substs=True,
     )
@@ -215,7 +215,7 @@ def launch_setup(context, *args, **kwargs):
                 ("input", "rectified/pointcloud_ex"),
                 ("output", "pointcloud_before_sync"),
             ],
-            parameters=[ring_corrector_node_param, ring_outlier_output_frame],
+            parameters=[ring_outlier_filter_node_param, ring_outlier_output_frame],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
     )
