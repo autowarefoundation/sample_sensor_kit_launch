@@ -321,7 +321,7 @@ def generate_launch_description():
             "config",
             "ring_outlier_filter_node.param.yaml",
         ),
-        description="path to parameter file of distortion correction node",
+        description="path to parameter file of ring outlier filter node",
     )
 
     set_container_executable = SetLaunchConfiguration(
