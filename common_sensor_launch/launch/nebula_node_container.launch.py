@@ -34,6 +34,8 @@ def get_lidar_make(sensor_name):
         return "Hesai", ".csv"
     elif sensor_name[:3].lower() in ["hdl", "vlp", "vls"]:
         return "Velodyne", ".yaml"
+    elif sensor_name.lower() in ["helios", "bpearl"]:
+        return "Robosense", None
     return "unrecognized_sensor_model"
 
 
@@ -75,19 +77,26 @@ def launch_setup(context, *args, **kwargs):
     nebula_decoders_share_dir = get_package_share_directory("nebula_decoders")
 
     # Calibration file
-    sensor_calib_fp = os.path.join(
-        nebula_decoders_share_dir,
-        "calibration",
-        sensor_make.lower(),
-        sensor_model + sensor_extension,
-    )
-    assert os.path.exists(
-        sensor_calib_fp
-    ), "Sensor calib file under calibration/ was not found: {}".format(sensor_calib_fp)
+    if sensor_extension is not None:  # Velodyne and Hesai
+        sensor_calib_fp = os.path.join(
+            nebula_decoders_share_dir,
+            "calibration",
+            sensor_make.lower(),
+            sensor_model + sensor_extension,
+        )
+        assert os.path.exists(
+            sensor_calib_fp
+        ), "Sensor calib file under calibration/ was not found: {}".format(sensor_calib_fp)
+    else:  # Robosense
+        sensor_calib_fp = ""
 
     # Pointcloud preprocessor parameters
     distortion_corrector_node_param = ParameterFile(
         param_file=LaunchConfiguration("distortion_correction_node_param_path").perform(context),
+        allow_substs=True,
+    )
+    ring_outlier_filter_node_param = ParameterFile(
+        param_file=LaunchConfiguration("ring_outlier_filter_node_param_path").perform(context),
         allow_substs=True,
     )
 
@@ -129,6 +138,8 @@ def launch_setup(context, *args, **kwargs):
                 # cSpell:ignore knzo25
                 # TODO(knzo25): fix the remapping once nebula gets updated
                 ("velodyne_points", "pointcloud_raw_ex"),
+                # ("robosense_points", "pointcloud_raw_ex"), #for robosense
+                # ("pandar_points", "pointcloud_raw_ex"), # for hesai
             ],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
@@ -199,11 +210,9 @@ def launch_setup(context, *args, **kwargs):
 
     # Ring Outlier Filter is the last component in the pipeline, so control the output frame here
     if LaunchConfiguration("output_as_sensor_frame").perform(context).lower() == "true":
-        ring_outlier_filter_parameters = {"output_frame": LaunchConfiguration("frame_id")}
+        ring_outlier_output_frame = {"output_frame": LaunchConfiguration("frame_id")}
     else:
-        ring_outlier_filter_parameters = {
-            "output_frame": ""
-        }  # keep the output frame as the input frame
+        ring_outlier_output_frame = {"output_frame": ""}  # keep the output frame as the input frame
     nodes.append(
         ComposableNode(
             package="autoware_pointcloud_preprocessor",
@@ -213,7 +222,7 @@ def launch_setup(context, *args, **kwargs):
                 ("input", "rectified/pointcloud_ex"),
                 ("output", "pointcloud_before_sync"),
             ],
-            parameters=[ring_outlier_filter_parameters],
+            parameters=[ring_outlier_filter_node_param, ring_outlier_output_frame],
             extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
         )
     )
@@ -311,6 +320,15 @@ def generate_launch_description():
             "distortion_corrector_node.param.yaml",
         ),
         description="path to parameter file of distortion correction node",
+    )
+    add_launch_arg(
+        "ring_outlier_filter_node_param_path",
+        os.path.join(
+            common_sensor_share_dir,
+            "config",
+            "ring_outlier_filter_node.param.yaml",
+        ),
+        description="path to parameter file of ring outlier filter node",
     )
 
     set_container_executable = SetLaunchConfiguration(
