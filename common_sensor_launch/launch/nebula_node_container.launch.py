@@ -23,7 +23,6 @@ from launch.conditions import IfCondition
 from launch.conditions import UnlessCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer
-from launch_ros.actions import LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
 from launch_ros.parameter_descriptions import ParameterFile
 import yaml
@@ -113,16 +112,18 @@ def launch_setup(context, *args, **kwargs):
     nodes.append(
         ComposableNode(
             package="nebula_ros",
-            plugin=sensor_make + "DriverRosWrapper",
-            name=sensor_make.lower() + "_driver_ros_wrapper_node",
+            plugin=sensor_make + "RosWrapper",
+            name=sensor_make.lower() + "_ros_wrapper_node",
             parameters=[
                 {
                     "calibration_file": sensor_calib_fp,
                     "sensor_model": sensor_model,
+                    "launch_hw": LaunchConfiguration("launch_driver"),
                     **create_parameter_dict(
                         "host_ip",
                         "sensor_ip",
                         "data_port",
+                        "gnss_port",
                         "return_mode",
                         "min_range",
                         "max_range",
@@ -131,6 +132,9 @@ def launch_setup(context, *args, **kwargs):
                         "cloud_min_angle",
                         "cloud_max_angle",
                         "dual_return_distance_threshold",
+                        "rotation_speed",
+                        "packet_mtu_size",
+                        "setup_sensor",
                     ),
                 },
             ],
@@ -237,41 +241,7 @@ def launch_setup(context, *args, **kwargs):
         output="both",
     )
 
-    driver_component = ComposableNode(
-        package="nebula_ros",
-        plugin=sensor_make + "HwInterfaceRosWrapper",
-        # node is created in a global context, need to avoid name clash
-        name=sensor_make.lower() + "_hw_interface_ros_wrapper_node",
-        parameters=[
-            {
-                "sensor_model": sensor_model,
-                "calibration_file": sensor_calib_fp,
-                **create_parameter_dict(
-                    "sensor_ip",
-                    "host_ip",
-                    "scan_phase",
-                    "return_mode",
-                    "frame_id",
-                    "rotation_speed",
-                    "data_port",
-                    "gnss_port",
-                    "cloud_min_angle",
-                    "cloud_max_angle",
-                    "packet_mtu_size",
-                    "dual_return_distance_threshold",
-                    "setup_sensor",
-                ),
-            }
-        ],
-    )
-
-    driver_component_loader = LoadComposableNodes(
-        composable_node_descriptions=[driver_component],
-        target_container=container,
-        condition=IfCondition(LaunchConfiguration("launch_driver")),
-    )
-
-    return [container, driver_component_loader]
+    return [container]
 
 
 def generate_launch_description():
