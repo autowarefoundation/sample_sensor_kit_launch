@@ -1,4 +1,4 @@
-# Copyright 2023 Tier IV, Inc. All rights reserved.
+# Copyright 2024 Tier IV, Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ from launch.conditions import IfCondition
 from launch.conditions import UnlessCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer
+from launch_ros.actions import LoadComposableNodes
 from launch_ros.descriptions import ComposableNode
 from launch_ros.parameter_descriptions import ParameterFile
 import yaml
@@ -101,13 +102,14 @@ def launch_setup(context, *args, **kwargs):
 
     nodes = []
 
-    nodes.append(
-        ComposableNode(
-            package="glog_component",
-            plugin="GlogComponent",
-            name="glog_component",
+    if UnlessCondition(LaunchConfiguration("use_pointcloud_container")).evaluate(context):
+        nodes.append(
+            ComposableNode(
+                package="glog_component",
+                plugin="GlogComponent",
+                name="glog_component",
+            )
         )
-    )
 
     nodes.append(
         ComposableNode(
@@ -149,87 +151,155 @@ def launch_setup(context, *args, **kwargs):
         )
     )
 
-    cropbox_parameters = create_parameter_dict("input_frame", "output_frame")
-    cropbox_parameters["negative"] = True
-
-    vehicle_info = get_vehicle_info(context)
-    cropbox_parameters["min_x"] = vehicle_info["min_longitudinal_offset"]
-    cropbox_parameters["max_x"] = vehicle_info["max_longitudinal_offset"]
-    cropbox_parameters["min_y"] = vehicle_info["min_lateral_offset"]
-    cropbox_parameters["max_y"] = vehicle_info["max_lateral_offset"]
-    cropbox_parameters["min_z"] = vehicle_info["min_height_offset"]
-    cropbox_parameters["max_z"] = vehicle_info["max_height_offset"]
-
-    nodes.append(
-        ComposableNode(
-            package="autoware_pointcloud_preprocessor",
-            plugin="autoware::pointcloud_preprocessor::CropBoxFilterComponent",
-            name="crop_box_filter_self",
-            remappings=[
-                ("input", "pointcloud_raw_ex"),
-                ("output", "self_cropped/pointcloud_ex"),
-            ],
-            parameters=[cropbox_parameters],
-            extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
+    if IfCondition(LaunchConfiguration("use_cuda_preprocessor")).evaluate(context):
+        nodes.append(
+            ComposableNode(
+                package="autoware_cuda_pointcloud_preprocessor",
+                plugin="autoware::cuda_organized_pointcloud_adapter::CudaOrganizedPointcloudAdapterNode",
+                name="cuda_organized_pointcloud_adapter_node",
+                remappings=[
+                    ("~/input/pointcloud", "pointcloud_raw_ex"),
+                    ("~/output/pointcloud", "cuda_points"),
+                    ("~/output/pointcloud/cuda", "cuda_points/cuda"),
+                ],
+                # The whole node can not set use_intra_process due to type negotiation internal topics
+                # extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
+            )
         )
-    )
 
-    mirror_info = get_vehicle_mirror_info(context)
-    cropbox_parameters["min_x"] = mirror_info["min_longitudinal_offset"]
-    cropbox_parameters["max_x"] = mirror_info["max_longitudinal_offset"]
-    cropbox_parameters["min_y"] = mirror_info["min_lateral_offset"]
-    cropbox_parameters["max_y"] = mirror_info["max_lateral_offset"]
-    cropbox_parameters["min_z"] = mirror_info["min_height_offset"]
-    cropbox_parameters["max_z"] = mirror_info["max_height_offset"]
+        preprocessor_parameters = {}
 
-    nodes.append(
-        ComposableNode(
-            package="autoware_pointcloud_preprocessor",
-            plugin="autoware::pointcloud_preprocessor::CropBoxFilterComponent",
-            name="crop_box_filter_mirror",
-            remappings=[
-                ("input", "self_cropped/pointcloud_ex"),
-                ("output", "mirror_cropped/pointcloud_ex"),
-            ],
-            parameters=[cropbox_parameters],
-            extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
+        vehicle_info = get_vehicle_info(context)
+        preprocessor_parameters["self_crop.min_x"] = vehicle_info["min_longitudinal_offset"]
+        preprocessor_parameters["self_crop.max_x"] = vehicle_info["max_longitudinal_offset"]
+        preprocessor_parameters["self_crop.min_y"] = vehicle_info["min_lateral_offset"]
+        preprocessor_parameters["self_crop.max_y"] = vehicle_info["max_lateral_offset"]
+        preprocessor_parameters["self_crop.min_z"] = vehicle_info["min_height_offset"]
+        preprocessor_parameters["self_crop.max_z"] = vehicle_info["max_height_offset"]
+
+        mirror_info = get_vehicle_mirror_info(context)
+        preprocessor_parameters["mirror_crop.min_x"] = mirror_info["min_longitudinal_offset"]
+        preprocessor_parameters["mirror_crop.max_x"] = mirror_info["max_longitudinal_offset"]
+        preprocessor_parameters["mirror_crop.min_y"] = mirror_info["min_lateral_offset"]
+        preprocessor_parameters["mirror_crop.max_y"] = mirror_info["max_lateral_offset"]
+        preprocessor_parameters["mirror_crop.min_z"] = mirror_info["min_height_offset"]
+        preprocessor_parameters["mirror_crop.max_z"] = mirror_info["max_height_offset"]
+
+        nodes.append(
+            ComposableNode(
+                package="autoware_cuda_pointcloud_preprocessor",
+                plugin="autoware::cuda_pointcloud_preprocessor::CudaPointcloudPreprocessorNode",
+                name="cuda_pointcloud_preprocessor_node",
+                parameters=[
+                    preprocessor_parameters,
+                    distortion_corrector_node_param,
+                    ring_outlier_filter_node_param,
+                ],
+                remappings=[
+                    ("~/input/pointcloud", "cuda_points"),
+                    ("~/input/pointcloud/cuda", "cuda_points/cuda"),
+                    ("~/input/twist", "/sensing/vehicle_velocity_converter/twist_with_covariance"),
+                    ("~/input/imu", "/sensing/imu/imu_data"),
+                    ("~/output/pointcloud", "pointcloud_before_sync"),
+                    ("~/output/pointcloud/cuda", "pointcloud_before_sync/cuda"),
+                ],
+                # The whole node can not set use_intra_process due to type negotiation internal topics
+                # extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
+            )
         )
-    )
 
-    nodes.append(
-        ComposableNode(
-            package="autoware_pointcloud_preprocessor",
-            plugin="autoware::pointcloud_preprocessor::DistortionCorrectorComponent",
-            name="distortion_corrector_node",
-            remappings=[
-                ("~/input/twist", "/sensing/vehicle_velocity_converter/twist_with_covariance"),
-                ("~/input/imu", "/sensing/imu/imu_data"),
-                ("~/input/pointcloud", "mirror_cropped/pointcloud_ex"),
-                ("~/output/pointcloud", "rectified/pointcloud_ex"),
-            ],
-            parameters=[distortion_corrector_node_param],
-            extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
-        )
-    )
-
-    # Ring Outlier Filter is the last component in the pipeline, so control the output frame here
-    if LaunchConfiguration("output_as_sensor_frame").perform(context).lower() == "true":
-        ring_outlier_output_frame = {"output_frame": LaunchConfiguration("frame_id")}
     else:
-        ring_outlier_output_frame = {"output_frame": ""}  # keep the output frame as the input frame
-    nodes.append(
-        ComposableNode(
-            package="autoware_pointcloud_preprocessor",
-            plugin="autoware::pointcloud_preprocessor::RingOutlierFilterComponent",
-            name="ring_outlier_filter",
-            remappings=[
-                ("input", "rectified/pointcloud_ex"),
-                ("output", "pointcloud_before_sync"),
-            ],
-            parameters=[ring_outlier_filter_node_param, ring_outlier_output_frame],
-            extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
+        cropbox_parameters = create_parameter_dict("input_frame", "output_frame")
+        cropbox_parameters["negative"] = True
+
+        vehicle_info = get_vehicle_info(context)
+        cropbox_parameters["min_x"] = vehicle_info["min_longitudinal_offset"]
+        cropbox_parameters["max_x"] = vehicle_info["max_longitudinal_offset"]
+        cropbox_parameters["min_y"] = vehicle_info["min_lateral_offset"]
+        cropbox_parameters["max_y"] = vehicle_info["max_lateral_offset"]
+        cropbox_parameters["min_z"] = vehicle_info["min_height_offset"]
+        cropbox_parameters["max_z"] = vehicle_info["max_height_offset"]
+
+        nodes.append(
+            ComposableNode(
+                package="autoware_pointcloud_preprocessor",
+                plugin="autoware::pointcloud_preprocessor::CropBoxFilterComponent",
+                name="crop_box_filter_self",
+                remappings=[
+                    ("input", "pointcloud_raw_ex"),
+                    ("output", "self_cropped/pointcloud_ex"),
+                ],
+                parameters=[cropbox_parameters],
+                extra_arguments=[
+                    {"use_intra_process_comms": LaunchConfiguration("use_intra_process")}
+                ],
+            )
         )
-    )
+
+        mirror_info = get_vehicle_mirror_info(context)
+        cropbox_parameters["min_x"] = mirror_info["min_longitudinal_offset"]
+        cropbox_parameters["max_x"] = mirror_info["max_longitudinal_offset"]
+        cropbox_parameters["min_y"] = mirror_info["min_lateral_offset"]
+        cropbox_parameters["max_y"] = mirror_info["max_lateral_offset"]
+        cropbox_parameters["min_z"] = mirror_info["min_height_offset"]
+        cropbox_parameters["max_z"] = mirror_info["max_height_offset"]
+
+        nodes.append(
+            ComposableNode(
+                package="autoware_pointcloud_preprocessor",
+                plugin="autoware::pointcloud_preprocessor::CropBoxFilterComponent",
+                name="crop_box_filter_mirror",
+                remappings=[
+                    ("input", "self_cropped/pointcloud_ex"),
+                    ("output", "mirror_cropped/pointcloud_ex"),
+                ],
+                parameters=[cropbox_parameters],
+                extra_arguments=[
+                    {"use_intra_process_comms": LaunchConfiguration("use_intra_process")}
+                ],
+            )
+        )
+
+        nodes.append(
+            ComposableNode(
+                package="autoware_pointcloud_preprocessor",
+                plugin="autoware::pointcloud_preprocessor::DistortionCorrectorComponent",
+                name="distortion_corrector_node",
+                remappings=[
+                    ("~/input/twist", "/sensing/vehicle_velocity_converter/twist_with_covariance"),
+                    ("~/input/imu", "/sensing/imu/imu_data"),
+                    ("~/input/pointcloud", "mirror_cropped/pointcloud_ex"),
+                    ("~/output/pointcloud", "rectified/pointcloud_ex"),
+                ],
+                parameters=[distortion_corrector_node_param],
+                extra_arguments=[
+                    {"use_intra_process_comms": LaunchConfiguration("use_intra_process")}
+                ],
+            )
+        )
+
+        # Ring Outlier Filter is the last component in the pipeline, so control the output frame here
+        if LaunchConfiguration("output_as_sensor_frame").perform(context).lower() == "true":
+            ring_outlier_output_frame = {"output_frame": LaunchConfiguration("frame_id")}
+        else:
+            ring_outlier_output_frame = {
+                "output_frame": ""
+            }  # keep the output frame as the input frame
+        nodes.append(
+            ComposableNode(
+                package="autoware_pointcloud_preprocessor",
+                plugin="autoware::pointcloud_preprocessor::RingOutlierFilterComponent",
+                name="ring_outlier_filter",
+                remappings=[
+                    ("input", "rectified/pointcloud_ex"),
+                    ("output", "pointcloud_before_sync"),
+                ],
+                parameters=[ring_outlier_filter_node_param, ring_outlier_output_frame],
+                extra_arguments=[
+                    {"use_intra_process_comms": LaunchConfiguration("use_intra_process")}
+                ],
+            )
+        )
 
     # set container to run all required components in the same process
     container = ComposableNodeContainer(
@@ -238,10 +308,17 @@ def launch_setup(context, *args, **kwargs):
         package="rclcpp_components",
         executable=LaunchConfiguration("container_executable"),
         composable_node_descriptions=nodes,
+        condition=UnlessCondition(LaunchConfiguration("use_pointcloud_container")),
         output="both",
     )
 
-    return [container]
+    load_composable_nodes = LoadComposableNodes(
+        composable_node_descriptions=nodes,
+        target_container=LaunchConfiguration("pointcloud_container_name"),
+        condition=IfCondition(LaunchConfiguration("use_pointcloud_container")),
+    )
+
+    return [container, load_composable_nodes]
 
 
 def generate_launch_description():
@@ -278,6 +355,9 @@ def generate_launch_description():
     add_launch_arg("use_multithread", "False", "use multithread")
     add_launch_arg("use_intra_process", "False", "use ROS 2 component container communication")
     add_launch_arg("lidar_container_name", "nebula_node_container")
+    add_launch_arg("pointcloud_container_name", "pointcloud_container")
+    add_launch_arg("use_pointcloud_container", "False")
+    add_launch_arg("use_cuda_preprocessor", "False")
     add_launch_arg("output_as_sensor_frame", "True", "output final pointcloud in sensor frame")
     add_launch_arg(
         "vehicle_mirror_param_file", description="path to the file of vehicle mirror position yaml"
