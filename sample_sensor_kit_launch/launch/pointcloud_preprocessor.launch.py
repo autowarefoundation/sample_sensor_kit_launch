@@ -46,7 +46,8 @@ def launch_setup(context, *args, **kwargs):
             ("output", "concatenated/pointcloud"),
         ],
         parameters=[concatenate_and_time_sync_node_param],
-        extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
+        # The whole node can not set use_intra_process due to type negotiation internal topics
+        # extra_arguments=[{"use_intra_process_comms": LaunchConfiguration("use_intra_process")}],
     )
 
     # load concat or passthrough filter
