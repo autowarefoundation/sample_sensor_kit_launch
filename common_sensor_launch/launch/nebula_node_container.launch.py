@@ -135,6 +135,7 @@ def launch_setup(context, *args, **kwargs):
                         "rotation_speed",
                         "packet_mtu_size",
                         "setup_sensor",
+                        "udp_only",
                     ),
                 },
             ],
@@ -300,6 +301,7 @@ def generate_launch_description():
         ),
         description="path to parameter file of ring outlier filter node",
     )
+    add_launch_arg("udp_only", "False", "use UDP only")
 
     set_container_executable = SetLaunchConfiguration(
         "container_executable",
