@@ -2,8 +2,8 @@
 Changelog for package sample_sensor_kit_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.39.0 (2024-12-09)
+-------------------
 * chore(gnss_launch): added autoware\_ prefix to gnss_poser (`#100 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/100>`_)
   * Added autoware\_ prefix to gnss_poser
   * style(pre-commit): autofix

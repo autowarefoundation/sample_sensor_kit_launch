@@ -2,8 +2,8 @@
 Changelog for package sample_sensor_kit_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.39.0 (2024-12-09)
+-------------------
 * chore: update maintainer (`#60 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/60>`_)
 * fix: suppress xacro warning (`#51 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/51>`_)
 * ci(pre-commit): update pre-commit-hooks-ros (`#16 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/16>`_)
