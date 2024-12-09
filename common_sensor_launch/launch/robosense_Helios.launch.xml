@@ -15,6 +15,7 @@
   <arg name="cloud_max_angle" default="360"/>
   <arg name="vehicle_mirror_param_file"/>
   <arg name="container_name" default="robosense_node_container"/>
+  <arg name="udp_only" default="false"/>
 
   <include file="$(find-pkg-share common_sensor_launch)/launch/nebula_node_container.launch.py">
     <arg name="launch_driver" value="$(var launch_driver)"/>
@@ -33,5 +34,6 @@
     <arg name="use_intra_process" value="true"/>
     <arg name="use_multithread" value="false"/>
     <arg name="container_name" value="$(var container_name)"/>
+    <arg name="udp_only" value="$(var udp_only)"/>
   </include>
 </launch>
