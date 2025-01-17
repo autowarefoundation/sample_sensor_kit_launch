@@ -2,6 +2,14 @@
 Changelog for package common_sensor_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Merge branch 'main' into release-0.40.0
+* fix(nebula_node_container.launch.py): autoware_glog_component (`#112 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/112>`_)
+  Fixed autoware_glog_component
+* refactor(glog_component): prefix package and namespace with autoware (`#110 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/110>`_)
+* Contributors: Esteve Fernandez, Ryohsuke Mitsudome, SakodaShintaro
+
 0.39.0 (2024-12-09)
 -------------------
 * chore(common_sensor_launch): add distortion corrector parameter (`#105 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/105>`_)
