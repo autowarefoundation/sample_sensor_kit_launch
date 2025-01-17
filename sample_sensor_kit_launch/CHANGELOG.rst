@@ -2,8 +2,8 @@
 Changelog for package sample_sensor_kit_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.40.0 (2025-01-17)
+-------------------
 * Merge branch 'main' into release-0.40.0
 * fix(sample_sensor_kit_launch): add autoware prefix to vehicle_velocity_converter (`#107 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/107>`_)
   * add autoware to vehicle_velocity_converter

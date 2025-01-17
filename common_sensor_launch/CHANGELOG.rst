@@ -2,8 +2,8 @@
 Changelog for package common_sensor_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.40.0 (2025-01-17)
+-------------------
 * Merge branch 'main' into release-0.40.0
 * fix(nebula_node_container.launch.py): autoware_glog_component (`#112 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/112>`_)
   Fixed autoware_glog_component
