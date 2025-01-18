@@ -2,6 +2,9 @@
 Changelog for package sample_sensor_kit_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.40.0 (2025-01-17)
+-------------------
+
 0.39.0 (2024-12-09)
 -------------------
 * chore: update maintainer (`#60 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/60>`_)
