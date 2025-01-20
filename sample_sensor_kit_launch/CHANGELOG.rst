@@ -2,6 +2,16 @@
 Changelog for package sample_sensor_kit_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.40.0 (2025-01-17)
+-------------------
+* Merge branch 'main' into release-0.40.0
+* fix(sample_sensor_kit_launch): add autoware prefix to vehicle_velocity_converter (`#107 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/107>`_)
+  * add autoware to vehicle_velocity_converter
+  * add dependency autoware_vehicle_velocity_converter
+  ---------
+  Co-authored-by: Yamato Ando <yamato.ando@gmail.com>
+* Contributors: Masaki Baba, Ryohsuke Mitsudome
+
 0.39.0 (2024-12-09)
 -------------------
 * chore(gnss_launch): added autoware\_ prefix to gnss_poser (`#100 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/100>`_)
