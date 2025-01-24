@@ -35,7 +35,7 @@
   </include>
 
   <!-- Velodyne Monitor -->
-  <include file="$(find-pkg-share velodyne_monitor)/launch/velodyne_monitor.launch.xml" if="$(var launch_driver)">
+  <include file="$(find-pkg-share autoware_velodyne_monitor)/launch/velodyne_monitor.launch.xml" if="$(var launch_driver)">
     <arg name="ip_address" value="$(var sensor_ip)"/>
   </include>
 </launch>
