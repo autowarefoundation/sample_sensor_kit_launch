@@ -2,6 +2,17 @@
 Changelog for package sample_sensor_kit_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* feat(sample_sensor_kit_launch): concatenate node load from parameter file (`#108 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/108>`_)
+  * feat: concatenate node load from parameter file
+  * chore: update params
+  * chore: add use_naive_approach
+  * chore: remove space
+  * feat: add matching strategy params
+  ---------
+* Contributors: Yi-Hsiang Fang (Vivid)
+
 0.40.0 (2025-01-17)
 -------------------
 * Merge branch 'main' into release-0.40.0
