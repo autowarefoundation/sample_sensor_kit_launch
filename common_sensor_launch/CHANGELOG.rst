@@ -2,8 +2,8 @@
 Changelog for package common_sensor_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.41.0 (2025-02-12)
+-------------------
 * fix: add `udp_only` (`#109 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/109>`_)
   Added udp_only
 * feat(common_sensor_launch): rename velodyne_monitor to autoware_velodyne_monitor (`#119 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/119>`_)

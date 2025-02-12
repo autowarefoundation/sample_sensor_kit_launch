@@ -2,8 +2,8 @@
 Changelog for package sample_sensor_kit_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.41.0 (2025-02-12)
+-------------------
 * feat(sample_sensor_kit_launch): concatenate node load from parameter file (`#108 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/108>`_)
   * feat: concatenate node load from parameter file
   * chore: update params
