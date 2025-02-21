@@ -240,6 +240,10 @@ def launch_setup(context, *args, **kwargs):
         executable=LaunchConfiguration("container_executable"),
         composable_node_descriptions=nodes,
         output="both",
+        additional_env={
+            'LD_PRELOAD': f"libagnocast_heaphook.so:{os.getenv('LD_PRELOAD', '')}",
+            'MEMPOOL_SIZE': '1073741824',  # 1GB
+        },
     )
 
     return [container]
