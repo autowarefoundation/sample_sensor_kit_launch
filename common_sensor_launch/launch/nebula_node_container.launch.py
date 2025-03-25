@@ -70,6 +70,8 @@ def launch_setup(context, *args, **kwargs):
             result[x] = LaunchConfiguration(x)
         return result
 
+    heaphook_path = LaunchConfiguration("heaphook_path").perform(context)
+
     # Model and make
     sensor_model = LaunchConfiguration("sensor_model").perform(context)
     sensor_make, sensor_extension = get_lidar_make(sensor_model)
@@ -241,7 +243,7 @@ def launch_setup(context, *args, **kwargs):
         composable_node_descriptions=nodes,
         output="both",
         additional_env={
-            'LD_PRELOAD': f"libagnocast_heaphook.so:{os.getenv('LD_PRELOAD', '')}",
+            'LD_PRELOAD': f"{heaphook_path}:{os.getenv('LD_PRELOAD', '')}",
             'MEMPOOL_SIZE': '1073741824',  # 1GB
         },
     )
