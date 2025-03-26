@@ -242,10 +242,10 @@ def launch_setup(context, *args, **kwargs):
         executable=LaunchConfiguration("container_executable"),
         composable_node_descriptions=nodes,
         output="both",
-        additional_env={
+        additional_env=({
             'LD_PRELOAD': f"{agnocast_heaphook_path}:{os.getenv('LD_PRELOAD', '')}",
             'MEMPOOL_SIZE': '1073741824',  # 1GB
-        },
+        } if os.getenv("ENABLE_AGNOCAST") == "1" else {})
     )
 
     return [container]
