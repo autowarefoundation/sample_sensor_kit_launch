@@ -1,5 +1,5 @@
 <launch>
-  <arg name="heaphook_path" description="Path to the heaphook library"/>
+  <arg name="agnocast_heaphook_path" description="Path to the agnocast heaphook library"/>
 
   <arg name="launch_driver" default="true"/>
   <arg name="host_ip" default="192.168.1.10"/>
@@ -14,7 +14,7 @@
     <group>
       <push-ros-namespace namespace="top"/>
       <include file="$(find-pkg-share common_sensor_launch)/launch/velodyne_VLS128.launch.xml">
-        <arg name="heaphook_path" value="$(var heaphook_path)"/>
+        <arg name="agnocast_heaphook_path" value="$(var agnocast_heaphook_path)"/>
         <arg name="max_range" value="250.0"/>
         <arg name="sensor_frame" value="velodyne_top"/>
         <arg name="sensor_ip" value="192.168.1.201"/>
@@ -30,7 +30,7 @@
     <group>
       <push-ros-namespace namespace="left"/>
       <include file="$(find-pkg-share common_sensor_launch)/launch/velodyne_VLP16.launch.xml">
-        <arg name="heaphook_path" value="$(var heaphook_path)"/>
+        <arg name="agnocast_heaphook_path" value="$(var agnocast_heaphook_path)"/>
         <arg name="max_range" value="5.0"/>
         <arg name="sensor_frame" value="velodyne_left"/>
         <arg name="sensor_ip" value="192.168.1.202"/>
@@ -48,7 +48,7 @@
     <group>
       <push-ros-namespace namespace="right"/>
       <include file="$(find-pkg-share common_sensor_launch)/launch/velodyne_VLP16.launch.xml">
-        <arg name="heaphook_path" value="$(var heaphook_path)"/>
+        <arg name="agnocast_heaphook_path" value="$(var agnocast_heaphook_path)"/>
         <arg name="max_range" value="5.0"/>
         <arg name="sensor_frame" value="velodyne_right"/>
         <arg name="sensor_ip" value="192.168.1.203"/>
@@ -66,7 +66,7 @@
     <group>
       <push-ros-namespace namespace="rear"/>
       <include file="$(find-pkg-share common_sensor_launch)/launch/velodyne_VLP16.launch.xml">
-        <arg name="heaphook_path" value="$(var heaphook_path)"/>
+        <arg name="agnocast_heaphook_path" value="$(var agnocast_heaphook_path)"/>
         <arg name="max_range" value="1.5"/>
         <arg name="sensor_frame" value="velodyne_rear"/>
         <arg name="sensor_ip" value="192.168.1.204"/>

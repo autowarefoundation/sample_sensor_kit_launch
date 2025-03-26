@@ -1,5 +1,5 @@
 <launch>
-  <arg name="heaphook_path" description="Path to the heaphook library"/>
+  <arg name="agnocast_heaphook_path" description="Path to the agnocast heaphook library"/>
 
   <!-- Params -->
   <arg name="launch_driver" default="true"/>
@@ -19,7 +19,7 @@
   <arg name="udp_only" default="false"/>
 
   <include file="$(find-pkg-share common_sensor_launch)/launch/nebula_node_container.launch.py">
-    <arg name="heaphook_path" value="$(var heaphook_path)"/>
+    <arg name="agnocast_heaphook_path" value="$(var agnocast_heaphook_path)"/>
     <arg name="launch_driver" value="$(var launch_driver)"/>
     <arg name="sensor_model" value="$(var model)"/>
     <arg name="return_mode" value="$(var return_mode)"/>
