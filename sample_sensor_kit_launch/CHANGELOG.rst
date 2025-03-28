@@ -2,6 +2,11 @@
 Changelog for package sample_sensor_kit_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.42.0 (2025-03-28)
+-------------------
+* refactor(sample_sensor_kit_launch): remove reference to tamagawa_imu_driver (`#122 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/122>`_)
+* Contributors: Esteve Fernandez, M. Fatih Cırıt
+
 0.41.0 (2025-02-12)
 -------------------
 * feat(sample_sensor_kit_launch): concatenate node load from parameter file (`#108 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/108>`_)
