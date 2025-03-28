@@ -2,6 +2,9 @@
 Changelog for package common_sensor_launch
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.42.0 (2025-03-28)
+-------------------
+
 0.41.0 (2025-02-12)
 -------------------
 * fix: add `udp_only` (`#109 <https://github.com/autowarefoundation/sample_sensor_kit_launch/issues/109>`_)
